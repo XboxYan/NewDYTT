@@ -3294,6 +3294,10 @@ react-native-navigation@^1.1.281:
   dependencies:
     lodash "4.x.x"
 
+react-native-scrollviewpager@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-scrollviewpager/-/react-native-scrollviewpager-1.0.0.tgz#ec4afc0c2e3c9cd3c380eee2caf745178328ff53"
+
 react-native@0.50.3:
   version "0.50.3"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.50.3.tgz#91282bd5356cc7d794969cdc443cc764389b9af4"
