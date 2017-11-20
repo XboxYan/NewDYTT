@@ -1,4 +1,5 @@
 import React from 'react';
+import {StatusBar} from 'react-native';
 
 export default class extends React.Component {
   static navigatorStyle = {
@@ -17,5 +18,13 @@ export default class extends React.Component {
     selectedTopTabIndicatorHeight: 4,
     //selectedTopTabIndicatorColor: '#ff505c',
   };
+  render(){
+    return (
+      <StatusBar
+        backgroundColor="blue"
+        barStyle="light-content"
+      />
+    )
+  }
 }
 

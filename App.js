@@ -9,8 +9,8 @@ Navigation.startSingleScreenApp({
       title: 'Welcome', // title of the screen as appears in the nav bar (optional)
       navigatorStyle: {
           //statusBarHidden:true,
-          statusBarColor:'red',
-          statusBarTextColorScheme: 'light',
+          //statusBarColor:'red',
+          //statusBarTextColorScheme: 'light',
           topTabsHeight:30,
           navBarHeight: 30,
           navBarNoBorder: true,    
