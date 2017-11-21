@@ -18,20 +18,15 @@ import {
     View,
 } from 'react-native';
 
-import TabItem from '../../compoents/TabItem';
-import AppTop from '../../compoents/AppTop';
-import Loading from '../../compoents/Loading';
-import Swiper from '../../compoents/Swiper';
+import Loading from '../../components/Loading';
+import Swiper from '../../components/Swiper';
 
-import fetchData from '../../util/Fetch';
-import { observable, action, computed } from 'mobx';
-import { observer } from 'mobx-react/native';
-import _ from '../../theme';
+import axios from '../../util/axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const MovieTitle = observer((props) => (
+const MovieTitle = (props) => (
     <View style={styles.view_hd}>
-        <View style={[styles.line, { backgroundColor: _.Color }]} />
+        <View style={[styles.line, { backgroundColor: $.Color }]} />
         <Text style={styles.view_title}>{props.title}</Text>
         <TouchableOpacity
             disabled={!!!props.title}
@@ -39,11 +34,10 @@ const MovieTitle = observer((props) => (
             onPress={() => props.navigation.navigate('MovieMore', { id: props.id, title: props.title })}
             style={styles.view_more}
         >
-            <Text style={styles.view_moretext}>更多</Text>
-            <Icon name='navigate-next' size={20} color={_.Color} />
+            <Icon name='navigate-next' size={20} color={$.Color} />
         </TouchableOpacity>
     </View>
-))
+)
 
 const MovieItem = (props) => (
     <TouchableOpacity
@@ -53,7 +47,6 @@ const MovieItem = (props) => (
         <Image
             style={styles.movieimg}
             source={{ uri: props.item.img }}
-            defaultSource={require('../../img/img_place.png')}
         />
         <View style={styles.movietext}>
             <Text numberOfLines={1} style={styles.moviename}>{props.item.name}</Text>
@@ -69,7 +62,7 @@ const MovieList = (props) => (
     </View>
 )
 
-const BannerItem = observer((props) => (
+const BannerItem = (props) => (
     <TouchableOpacity
         activeOpacity={.9}
         onPress={() => props.navigation.navigate('MovieDetail', { movieId: props.data.vid })}
@@ -78,53 +71,42 @@ const BannerItem = observer((props) => (
         <Image style={styles.bannerimg} source={{ uri: props.data.img }} />
         <Text style={styles.bannertext}>{props.data.desc || ' '}</Text>
     </TouchableOpacity>
-))
+)
 
-@observer
 export default class extends PureComponent {
-    static navigationOptions = {
-        tabBarIcon: ({ focused, tintColor }) => <TabItem label='推荐' icon='fire' active={focused} />,
-    }
 
     constructor(props) {
         super(props);
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
 
-    @observable data = {};
-
-    @observable isRender = false;
-
-    @computed get bannerDatas() {
-        return this.data.bannerDatas || [{}];
+    state = {
+        data:{},
+        isRender:false,
     }
 
-    @computed get viewItemModels() {
-        return this.data.viewItemModels || [{}, {}, {}, {}, {}, {}];
-    }
-
-    @computed get sections() {
-        return this.viewItemModels.map((el, i) => ({
+    sections = (viewItemModels) => (
+        viewItemModels.map((el, i) => ({
             data: [el.videos],
             title: el.title,
             key: "section" + i
         }))
-    }
+    )
 
-    getHot = () => {
-        fetchData('hotPlay', {
-            par: {
-                type: this.props.id
+    getHot = async () => {
+        const data = await axios.get('/hotPlay',{
+            params:{
+                type:this.props.id
             }
-        },
-            (data) => {
-                //LayoutAnimation.spring();
-                this.data = data.body;
-                this.isRender = true;
-                LayoutAnimation.spring();
+        })
 
-            }
-        )
+        LayoutAnimation.spring();
+
+        this.setState({
+            data:data.data.body,
+            isRender:true,
+        })
+
     }
 
     componentDidMount() {
@@ -138,10 +120,14 @@ export default class extends PureComponent {
     }
 
     renderHeader = () => {
+        const { data:{bannerDatas} } = this.state;
+        if(bannerDatas.length===0){
+            return null
+        }
         return (
-            <Swiper dotColor={_.Color} style={styles.bannerWrap}>
+            <Swiper dotColor={$.Color} style={styles.bannerWrap}>
                 {
-                    this.bannerDatas.map((el, i) => <BannerItem navigation={this.props.navigation} data={el} key={i + el.id} />)
+                    bannerDatas.map((el, i) => <BannerItem navigation={this.props.navigation} data={el} key={i + el.id} />)
                 }
             </Swiper>
         )
@@ -149,20 +135,21 @@ export default class extends PureComponent {
 
     render() {
         const { navigation } = this.props;
+        const { isRender,data:{viewItemModels} } = this.state;
         return (
             <View style={styles.content}>
                 {
-                    this.isRender ?
+                    isRender ?
                     <SectionList
                         ListHeaderComponent={this.renderHeader}
                         initialNumToRender={1}
                         renderItem={({ item }) => <MovieList data={item} navigation={navigation} />}
-                        //stickySectionHeadersEnabled={true}
+                        stickySectionHeadersEnabled={true}
                         renderSectionHeader={({ section }) => <MovieTitle title={section.title} navigation={navigation} />}
                         keyExtractor={(item, index) => "item" + index}
                         //enableVirtualization={true}
                         //removeClippedSubviews={false}
-                        sections={this.sections}
+                        sections={this.sections(viewItemModels)}
                     />
                     :
                     <Loading/>
@@ -204,11 +191,11 @@ const styles = StyleSheet.create({
         color: '#999'
     },
     bannerWrap: {
-        backgroundColor: '#fff'
+        backgroundColor: '#fff',
+        height: $.WIDTH * 9 / 16,
     },
     banner: {
         flex: 1,
-        height: $.WIDTH * 9 / 16,
         borderRadius: 3,
         backgroundColor: '#f1f1f1',
         overflow: 'hidden'

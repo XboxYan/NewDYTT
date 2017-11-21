@@ -1,5 +1,5 @@
 import { Navigation } from 'react-native-navigation';
-
+import './util/global';
 import Movie from './pages/Movie';
 import Home from './Home';
 
