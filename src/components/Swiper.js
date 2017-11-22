@@ -71,7 +71,7 @@ export default class Swiper extends PureComponent {
         const { style,dotColor } = this.props;
         const { pageIndex } = this.state;
         return (
-            <View style={[style, { paddingBottom: 15 }]}>
+            <View style={[style, { paddingBottom: 10 }]}>
                 <Animated.ScrollView
                     ref={(viewpager) => this.viewpager = viewpager}
                     style={styles.content}
@@ -100,12 +100,12 @@ export default class Swiper extends PureComponent {
                                 transform: [{
                                     scale: this.scrollX.interpolate({
                                         inputRange: [(index - 1) * this.realWidth, index * this.realWidth, (index + 1) * this.realWidth],
-                                        outputRange: [.8, .92, .8]
+                                        outputRange: [.9, 1, .9]
                                     })
                                 }, {
                                     translateX: this.scrollX.interpolate({
                                         inputRange: [(index - 1) * this.realWidth, index * this.realWidth, (index + 1) * this.realWidth],
-                                        outputRange: [-60, 0, 60]
+                                        outputRange: [-40, 0, 40]
                                     })
                                 }]
                             }]}>{child}</Animated.View>
@@ -119,7 +119,7 @@ export default class Swiper extends PureComponent {
                                 transform: [{
                                         translateY: this.scrollX.interpolate({
                                             inputRange: [(index - 2) * this.realWidth,(index - 1) * this.realWidth, index * this.realWidth, (index + 1) * this.realWidth, (index + 2) * this.realWidth],
-                                            outputRange: [0, 0, -2, 0, 0]
+                                            outputRange: [0, 0, 2, 0, 0]
                                         })
                                     }]
                                 }]}>
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        height: 15,
+        height: 20,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',

@@ -20,7 +20,7 @@ import {
 
 import Loading from '../../components/Loading';
 import Swiper from '../../components/Swiper';
-
+import { Navigation } from 'react-native-navigation';
 import axios from '../../util/axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -62,16 +62,29 @@ const MovieList = (props) => (
     </View>
 )
 
-const BannerItem = (props) => (
-    <TouchableOpacity
-        activeOpacity={.9}
-        onPress={() => props.navigation.navigate('MovieDetail', { movieId: props.data.vid })}
-        style={styles.banner}
-    >
-        <Image style={styles.bannerimg} source={{ uri: props.data.img }} />
-        <Text style={styles.bannertext}>{props.data.desc || ' '}</Text>
-    </TouchableOpacity>
-)
+const BannerItem = (props) => {
+    go = () => {
+        props.navigator.push({
+            screen:'app.MovieDetail',
+            animationType:'slide-horizontal',
+            navigatorStyle:{
+                navBarHidden:true,
+                screenBackgroundColor: '#000',
+                statusBarColor: 'rgba(0,0,0,0)',
+                statusBarTextColorScheme:'light',
+            }
+        })
+    }
+    return (
+        <TouchableOpacity
+            activeOpacity={.9}
+            onPress={this.go}
+            style={styles.banner}>
+            <Image style={styles.bannerimg} source={{ uri: props.data.img }} />
+            <Text style={styles.bannertext}>{props.data.desc || ' '}</Text>
+        </TouchableOpacity>
+    )
+}
 
 export default class extends PureComponent {
 
@@ -127,14 +140,14 @@ export default class extends PureComponent {
         return (
             <Swiper dotColor={$.Color} style={styles.bannerWrap}>
                 {
-                    bannerDatas.map((el, i) => <BannerItem navigation={this.props.navigation} data={el} key={i + el.id} />)
+                    bannerDatas.slice(0,6).map((el, i) => <BannerItem navigator={this.props.navigator} data={el} key={i + el.id} />)
                 }
             </Swiper>
         )
     }
 
     render() {
-        const { navigation } = this.props;
+        const { navigator } = this.props;
         const { isRender,data:{viewItemModels} } = this.state;
         return (
             <View style={styles.content}>
@@ -143,9 +156,9 @@ export default class extends PureComponent {
                     <SectionList
                         ListHeaderComponent={this.renderHeader}
                         initialNumToRender={1}
-                        renderItem={({ item }) => <MovieList data={item} navigation={navigation} />}
+                        renderItem={({ item }) => <MovieList data={item} navigator={navigator} />}
                         stickySectionHeadersEnabled={true}
-                        renderSectionHeader={({ section }) => <MovieTitle title={section.title} navigation={navigation} />}
+                        renderSectionHeader={({ section }) => section.data[0].length>0?<MovieTitle title={section.title} navigator={navigator} />:null}
                         keyExtractor={(item, index) => "item" + index}
                         //enableVirtualization={true}
                         //removeClippedSubviews={false}
@@ -195,6 +208,7 @@ const styles = StyleSheet.create({
         height: $.WIDTH * 9 / 16,
     },
     banner: {
+        margin:10,
         flex: 1,
         borderRadius: 3,
         backgroundColor: '#f1f1f1',
@@ -207,7 +221,7 @@ const styles = StyleSheet.create({
         borderRadius: 3
     },
     bannertext: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#fff',
         paddingHorizontal: 10,
         paddingVertical: 7,
@@ -229,7 +243,7 @@ const styles = StyleSheet.create({
         paddingTop: 10,
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginBottom: 10,
+        //marginBottom: 10,
     },
     movieitem: {
         width: ($.WIDTH - 40) / 3,
@@ -250,7 +264,7 @@ const styles = StyleSheet.create({
     },
     moviename: {
         fontSize: 14,
-        color: '#333',
+        color: '#666',
         textAlign: 'center',
         flex: 1
     },

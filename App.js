@@ -7,8 +7,9 @@ Navigation.startSingleScreenApp({
   screen: {
       screen: 'app.Movie',
       navigatorStyle: {
-        screenBackgroundColor: '#f7f7f7',
+        //screenBackgroundColor: 'orangered',
         statusBarTextColorScheme:'light',
+        statusBarColor: $.Color,
         navBarHidden:true,
       },
   },

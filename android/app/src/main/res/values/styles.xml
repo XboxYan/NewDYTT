@@ -4,13 +4,8 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <!--透明状态栏-->
-        <item name="android:windowTranslucentStatus">true</item>
-        <!--透明导航栏-->
-        <item name="android:windowTranslucentNavigation">true</item> 
-        <!--使状态栏，导航栏可绘制-->
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <!--Android 5.x开始需要把颜色设置透明，否则导航栏会呈现系统默认的浅灰色-->
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item> 
+        <item name="android:windowFullscreen">true</item> 
     </style>
 
 </resources>

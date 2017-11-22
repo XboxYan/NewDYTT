@@ -11,7 +11,6 @@ import {
     ScrollView,
     StatusBar,
     LayoutAnimation,
-    Text,
     View,
 } from 'react-native';
 
@@ -27,7 +26,7 @@ const tabBarOptions = {
         //paddingHorizontal:15
     },
     style: {
-        backgroundColor: '#fff',
+        backgroundColor: '#f7f7f7',
     },
     scrollEnabled: true,
     tabStyle: {
@@ -46,7 +45,7 @@ const tabBarOptions = {
     indicatorStyle: {
         backgroundColor: $.Color,
         height: 3,
-        marginBottom:2,
+        marginBottom:3,
         borderRadius:2,
         width: 20
     }
@@ -83,10 +82,10 @@ const tabs = [
     },
 ]
 
-export default class Home extends PureComponent {
+export default class extends PureComponent {
     
     componentDidMount() {
-    
+        //console.warn('11')
     }
 
     componentWillUpdate() {
@@ -94,18 +93,19 @@ export default class Home extends PureComponent {
     }
 
     render() {
-        const { navigation } = this.props;
+        const { navigator } = this.props;
         return (
             <View style={styles.content}>
-                <AppTop title='推荐' navigation={navigation} />
+                <AppTop title='推荐' navigator={navigator} />
                 <StatusBar
-                  backgroundColor="blue"
+                  translucent={true}
                   barStyle="light-content"
+                  backgroundColor={$.Color}
                 />
                 <ScrollViewPager tabBarOptions={tabBarOptions} >
                     {
                         tabs.map((el,i)=>(
-                            <MovieContent tablabel={el.name} key={i} id={el.id} navigation={this.props.navigation} />
+                            <MovieContent tablabel={el.name} key={i} id={el.id} navigator={navigator} />
                         ))
                     }
                 </ScrollViewPager>
@@ -117,5 +117,6 @@ export default class Home extends PureComponent {
 const styles = StyleSheet.create({
     content: {
         flex: 1,
+        backgroundColor:'#fff'
     },
 })
