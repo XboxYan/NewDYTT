@@ -1,37 +1,23 @@
 package com.newdytt;
 
-import android.widget.LinearLayout;
-// import android.graphics.Color;
-// import android.widget.TextView;
-// import android.view.Gravity;
-// import android.util.TypedValue;
-import android.widget.ImageView;
-import com.newdytt.R;
-import android.widget.ImageView.ScaleType;
+import android.os.Bundle;
+import com.facebook.react.ReactActivity;
+import org.devio.rn.splashscreen.SplashScreen;
 
-import com.reactnativenavigation.controllers.SplashActivity;
+public class MainActivity extends ReactActivity {
 
-public class MainActivity extends SplashActivity {
+    /**
+     * Returns the name of the main component registered from JavaScript.
+     * This is used to schedule rendering of the component.
+     */
     @Override
-    public LinearLayout createSplashLayout() {
-        LinearLayout view = new LinearLayout(this);
-        ImageView imagetView = new ImageView(this);
+    protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen.show(this,true);  // here
+        super.onCreate(savedInstanceState);
+    }
 
-        //view.setBackgroundColor(Color.parseColor("#607D8B"));
-        //view.setGravity(Gravity.CENTER);
-
-        imagetView.setImageResource(R.drawable.launch_screen);
-
-        imagetView.setLayoutParams(new LinearLayout.LayoutParams(-1,-1));
-
-        imagetView.setScaleType(ScaleType.CENTER);
-
-        // textView.setTextColor(Color.parseColor("#FFFFFF"));
-        // textView.setText("React Native Navigation");
-        // textView.setGravity(Gravity.CENTER);
-        // textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 40);
-
-        view.addView(imagetView);
-        return view;
+    @Override
+    protected String getMainComponentName() {
+        return "NewDYTT";
     }
 }

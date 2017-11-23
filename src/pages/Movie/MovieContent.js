@@ -20,7 +20,6 @@ import {
 
 import Loading from '../../components/Loading';
 import Swiper from '../../components/Swiper';
-import { Navigation } from 'react-native-navigation';
 import axios from '../../util/axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -68,10 +67,10 @@ const BannerItem = (props) => {
             screen:'app.MovieDetail',
             animationType:'slide-horizontal',
             navigatorStyle:{
-                navBarHidden:true,
-                screenBackgroundColor: '#000',
-                statusBarColor: 'rgba(0,0,0,0)',
-                statusBarTextColorScheme:'light',
+                //navBarHidden:true,
+                //screenBackgroundColor: '#000',
+                //statusBarColor: 'rgba(0,0,0,0)',
+                //statusBarTextColorScheme:'light',
             }
         })
     }

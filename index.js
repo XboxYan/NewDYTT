@@ -7,6 +7,7 @@ if (!__DEV__) {
         error: () => { },
     };
 }
+import './src/util/global';
 import { AppRegistry } from 'react-native';
 import App from './App';
 
