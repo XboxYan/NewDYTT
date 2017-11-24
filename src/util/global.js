@@ -14,7 +14,7 @@ import {
   
   global.$ = {
     STATUS_HEIGHT: STATUS_HEIGHT,
-    Color:'orangered',
+    Color:'#f8565f',
     IOS:Platform.OS==='ios',
     WIDTH: width,
     HEIGHT: height,

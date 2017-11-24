@@ -6,11 +6,8 @@ import {
     Image,
     View,
 } from 'react-native';
-import { observer } from 'mobx-react/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import _ from '../theme';
 
-@observer
 class StarCurrent extends PureComponent {
     width = new Animated.Value(0);
     componentWillUpdate(nextProps, nextState) {
@@ -42,13 +39,12 @@ class StarCurrent extends PureComponent {
     render() {
         return (
             <Animated.View style={[styles.star, { width: this.width }]}>
-                <Image source={require('../img/star.png')} tintColor={_.Color} style={styles.star} />
+                <Image source={require('../img/star.png')} tintColor={$.Color} style={styles.star} />
             </Animated.View>
         )
     }
 }
 
-@observer
 export default class Star extends PureComponent {
     render() {
         const { score, style, isShowNum = true } = this.props;
@@ -57,7 +53,7 @@ export default class Star extends PureComponent {
                 <Image source={require('../img/star.png')} style={styles.star} />
                 <StarCurrent score={score} />
                 {
-                    isShowNum&&<Text style={[styles.score, { color: _.Color }]}>{score || '0.0'}</Text>
+                    isShowNum&&<Text style={[styles.score, { color: $.Color }]}>{parseInt(score)? score:'0.0'}</Text>
                 }
             </View>
         )

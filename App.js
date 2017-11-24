@@ -3,6 +3,7 @@ import { StackNavigator } from "react-navigation";
 import { Platform } from 'react-native';
 import CardStackStyleInterpolator from 'react-navigation/src/views/CardStack/CardStackStyleInterpolator'
 import Home from './src';
+import Movie from './src/pages/Movie/MovieDetail';
 
 //TabNavigatorConfig
 const TabNavigatorConfig = {
@@ -38,6 +39,7 @@ const StackNavigatorConfig = {
 //StackNavigator
 const App = StackNavigator({
     Home: { screen: Home },
+    Movie: { screen: Movie },
 },StackNavigatorConfig);
 
 export default App;

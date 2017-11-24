@@ -38,20 +38,25 @@ const MovieTitle = (props) => (
     </View>
 )
 
-const MovieItem = (props) => (
-    <TouchableOpacity
-        activeOpacity={.8}
-        onPress={() => props.navigation.navigate('MovieDetail', { movieId: props.item.movieId })}
-        style={styles.movieitem}>
-        <Image
-            style={styles.movieimg}
-            source={{ uri: props.item.img }}
-        />
-        <View style={styles.movietext}>
-            <Text numberOfLines={1} style={styles.moviename}>{props.item.name}</Text>
-        </View>
-    </TouchableOpacity>
-)
+const MovieItem = ({navigation,item}) => {
+    go = () => {
+        navigation.navigate('Movie',{movieId:item.movieId});
+    }
+    return (
+        <TouchableOpacity
+            activeOpacity={.8}
+            onPress={this.go}
+            style={styles.movieitem}>
+            <Image
+                style={styles.movieimg}
+                source={{ uri: item.img }}
+            />
+            <View style={styles.movietext}>
+                <Text numberOfLines={1} style={styles.moviename}>{item.name}</Text>
+            </View>
+        </TouchableOpacity>
+    )
+}
 
 const MovieList = (props) => (
     <View style={styles.movielist}>
@@ -61,26 +66,17 @@ const MovieList = (props) => (
     </View>
 )
 
-const BannerItem = (props) => {
+const BannerItem = ({data,navigation}) => {
     go = () => {
-        props.navigator.push({
-            screen:'app.MovieDetail',
-            animationType:'slide-horizontal',
-            navigatorStyle:{
-                //navBarHidden:true,
-                //screenBackgroundColor: '#000',
-                //statusBarColor: 'rgba(0,0,0,0)',
-                //statusBarTextColorScheme:'light',
-            }
-        })
+        navigation.navigate('Movie',{movieId:data.vid})
     }
     return (
         <TouchableOpacity
             activeOpacity={.9}
             onPress={this.go}
             style={styles.banner}>
-            <Image style={styles.bannerimg} source={{ uri: props.data.img }} />
-            <Text style={styles.bannertext}>{props.data.desc || ' '}</Text>
+            <Image style={styles.bannerimg} source={{ uri: data.img }} />
+            <Text style={styles.bannertext}>{data.desc || ' '}</Text>
         </TouchableOpacity>
     )
 }
@@ -139,14 +135,14 @@ export default class extends PureComponent {
         return (
             <Swiper dotColor={$.Color} style={styles.bannerWrap}>
                 {
-                    bannerDatas.slice(0,6).map((el, i) => <BannerItem navigator={this.props.navigator} data={el} key={i + el.id} />)
+                    bannerDatas.slice(0,6).map((el, i) => <BannerItem navigation={this.props.navigation} data={el} key={i + el.id} />)
                 }
             </Swiper>
         )
     }
 
     render() {
-        const { navigator } = this.props;
+        const { navigation } = this.props;
         const { isRender,data:{viewItemModels} } = this.state;
         return (
             <View style={styles.content}>
@@ -155,9 +151,9 @@ export default class extends PureComponent {
                     <SectionList
                         ListHeaderComponent={this.renderHeader}
                         initialNumToRender={1}
-                        renderItem={({ item }) => <MovieList data={item} navigator={navigator} />}
+                        renderItem={({ item }) => <MovieList data={item} navigation={navigation} />}
                         stickySectionHeadersEnabled={true}
-                        renderSectionHeader={({ section }) => section.data[0].length>0?<MovieTitle title={section.title} navigator={navigator} />:null}
+                        renderSectionHeader={({ section }) => section.data[0].length>0?<MovieTitle title={section.title} navigation={navigation} />:null}
                         keyExtractor={(item, index) => "item" + index}
                         //enableVirtualization={true}
                         //removeClippedSubviews={false}
@@ -184,8 +180,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff'
     },
     line: {
-        height: 15,
+        height: 16,
         width: 3,
+        borderRadius:2,
         marginRight: 10,
     },
     view_title: {
@@ -204,7 +201,7 @@ const styles = StyleSheet.create({
     },
     bannerWrap: {
         backgroundColor: '#fff',
-        height: $.WIDTH * 9 / 16,
+        height: $.WIDTH / 2,
     },
     banner: {
         margin:10,

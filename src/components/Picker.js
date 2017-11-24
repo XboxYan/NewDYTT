@@ -44,7 +44,7 @@ class StarCurrent extends PureComponent {
     render() {
         return (
             <Animated.View style={[styles.star, { width: this.width }]}>
-                <Image source={require('../img/star.png')} tintColor={_.Color} style={styles.star} />
+                <Image source={require('../img/star.png')} tintColor={$.Color} style={styles.star} />
             </Animated.View>
         )
     }

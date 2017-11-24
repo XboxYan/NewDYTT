@@ -94,10 +94,10 @@ export default class extends PureComponent {
     }
 
     render() {
-        const { navigator } = this.props;
+        const { navigation } = this.props;
         return (
             <View style={styles.content}>
-                <AppTop title='推荐' navigator={navigator} />
+                <AppTop title='推荐' navigation={navigation} />
                 <StatusBar
                   translucent={true}
                   barStyle="light-content"
@@ -106,7 +106,7 @@ export default class extends PureComponent {
                 <ScrollViewPager tabBarOptions={tabBarOptions} >
                     {
                         tabs.map((el,i)=>(
-                            <MovieContent tablabel={el.name} key={i} id={el.id} navigator={navigator} />
+                            <MovieContent tablabel={el.name} key={i} id={el.id} navigation={navigation} />
                         ))
                     }
                 </ScrollViewPager>

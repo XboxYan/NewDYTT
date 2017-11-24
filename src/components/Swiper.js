@@ -16,7 +16,7 @@ export default class Swiper extends PureComponent {
         pageIndex:0
     }
 
-    len = 1;
+    len = 0;
 
     onLayout = ({ nativeEvent: e }) => {
         this.realWidth = e.layout.width;
@@ -98,14 +98,9 @@ export default class Swiper extends PureComponent {
                                     outputRange: [.6, 1, .6]
                                 }),
                                 transform: [{
-                                    scale: this.scrollX.interpolate({
-                                        inputRange: [(index - 1) * this.realWidth, index * this.realWidth, (index + 1) * this.realWidth],
-                                        outputRange: [.9, 1, .9]
-                                    })
-                                }, {
                                     translateX: this.scrollX.interpolate({
                                         inputRange: [(index - 1) * this.realWidth, index * this.realWidth, (index + 1) * this.realWidth],
-                                        outputRange: [-40, 0, 40]
+                                        outputRange: [-15, 0, 15]
                                     })
                                 }]
                             }]}>{child}</Animated.View>
