@@ -29,40 +29,6 @@ import Star from '../../components/Star';
 import Loading from '../../components/Loading';
 import axios from '../../util/axios';
 
-const tabBarOptions = {
-    wrapstyle:{
-        height:$.HEIGHT-$.STATUS_HEIGHT-48
-    },
-    tabconStyle: {
-        justifyContent: 'center',
-        //paddingHorizontal:15
-    },
-    style: {
-        backgroundColor: '#fff',
-    },
-    scrollEnabled: true,
-    tabStyle: {
-        height: 40,
-        paddingHorizontal: 15,
-        //width:100
-    },
-    labelStyle: {
-        fontSize: 14,
-        color: '#666',
-    },
-    activelabelStyle:{
-      transform:[{scale:1.05}],
-      color:$.Color
-    },
-    indicatorStyle: {
-        backgroundColor: $.Color,
-        height: 3,
-        marginBottom:3,
-        borderRadius:2,
-        width: 20
-    }
-}
-
 //头部
 const MovieTop = ({scrollTop,goBack,name}) => (
     <View style={styles.appbar}>
@@ -173,38 +139,36 @@ class MovieSummary extends PureComponent {
         const {isMore} = this.state;
         const types = type&&type.split(' ').filter((el) => !!el);
         return (
-            <ScrollView style={{flex:1}}>
-                <View style={styles.viewcon}>
-                    <SortTitle title='剧情介绍'>
-                        {
-                            isRender &&
-                            <TouchableOpacity
-                                onPress={this.expand}
-                                style={styles.view_more}
-                            >
-                                <Text style={styles.view_moretext}>{isMore ? '收起' : '展开'}</Text>
-                                <Icon name={isMore ? 'expand-less' : 'expand-more'} size={20} color={$.Color} />
-                            </TouchableOpacity>
-                        }
-                    </SortTitle>
-                    <View style={styles.con}>
-                        {
-                            isRender
-                                ?
-                                <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc+desc}</Text>
-                                :
-                                <Loading size='small' text='' />
-                        }
-                    </View>
-                    <View style={styles.con}>
-                        {
-                            isRender && types.map((el, i) => (
-                                <TypeItem key={i} item={el} />
-                            ))
-                        }
-                    </View>
+            <View style={styles.viewcon}>
+                <SortTitle title='剧情介绍'>
+                    {
+                        isRender &&
+                        <TouchableOpacity
+                            onPress={this.expand}
+                            style={styles.view_more}
+                        >
+                            <Text style={styles.view_moretext}>{isMore ? '收起' : '展开'}</Text>
+                            <Icon name={isMore ? 'expand-less' : 'expand-more'} size={20} color={$.Color} />
+                        </TouchableOpacity>
+                    }
+                </SortTitle>
+                <View style={styles.con}>
+                    {
+                        isRender
+                            ?
+                            <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc}</Text>
+                            :
+                            <Loading size='small' text='' />
+                    }
                 </View>
-            </ScrollView>
+                <View style={styles.con}>
+                    {
+                        isRender && types.map((el, i) => (
+                            <TypeItem key={i} item={el} />
+                        ))
+                    }
+                </View>
+            </View>
         )
     }
 }
@@ -282,7 +246,6 @@ export default class extends PureComponent {
             <Animated.ScrollView
                 showsVerticalScrollIndicator={false}
                 stickyHeaderIndices={[0]}
-                
                 //scrollEventThrottle={1}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: this.scrollTop } } }],
@@ -294,13 +257,17 @@ export default class extends PureComponent {
                     resizeMode='cover'
                     blurRadius={3.5}
                     source={{ uri: moviedata.img||'http' }}
-                    style={[styles.bg_place, {backgroundColor: $.Color}]} />
-                <View style={{height:$.WIDTH * 9 / 16-$.STATUS_HEIGHT-48}}></View>
-                <ScrollViewPager tabBarOptions={tabBarOptions} >
-                    <MovieInfo tablabel='影视简介' moviedata={moviedata} sourceTypeIndex={sourceTypeIndex} getSource={this.getSource} />
-                    <MovieSummary tablabel='剧情介绍' moviedata={moviedata} isRender={isRender} />
-                </ScrollViewPager>
-                
+                    style={[styles.bg_place, {backgroundColor: $.Color,
+                        transform: [{
+                            scale: this.scrollTop.interpolate({
+                                inputRange: [0, $.STATUS_HEIGHT + 50],
+                                outputRange: [1, 1.3]
+                            })
+                        }]
+                }]} />
+                <MovieInfo moviedata={moviedata} sourceTypeIndex={sourceTypeIndex} getSource={this.getSource} />
+                <MovieSummary moviedata={moviedata} isRender={isRender} />
+                <View style={{height:2000}}></View>
             </Animated.ScrollView>
         )
     }
@@ -329,10 +296,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff'
     },
     viewcon: {
-        margin: 10,
+        marginBottom: 10,
         backgroundColor: '#fff',
         paddingVertical: 10,
         borderRadius: 3,
+        marginHorizontal: 10,
     },
     row: {
         flexDirection: 'row'
@@ -593,7 +561,8 @@ const styles = StyleSheet.create({
         padding:10
     },
     videobox: {
-        margin: 10,
+        marginBottom: 10,
+        marginHorizontal: 10,
     },
     videostart:{
         paddingVertical: 10,

@@ -100,7 +100,7 @@ export default class Swiper extends PureComponent {
                                 transform: [{
                                     translateX: this.scrollX.interpolate({
                                         inputRange: [(index - 1) * this.realWidth, index * this.realWidth, (index + 1) * this.realWidth],
-                                        outputRange: [-15, 0, 15]
+                                        outputRange: [-10, 0, 10]
                                     })
                                 }]
                             }]}>{child}</Animated.View>
