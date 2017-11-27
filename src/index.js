@@ -53,10 +53,10 @@ const tabBarOptions = {
 }
 
 const tabs = [
-    {
-        name: '热播',
-        id: 0
-    },
+    // {
+    //     name: '热播',
+    //     id: 0
+    // },
     {
         name: '电影',
         id: 1

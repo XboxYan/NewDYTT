@@ -65,7 +65,7 @@ const tabBarOptions = {
 
 //头部
 const MovieTop = ({scrollTop,goBack,name}) => (
-    <View style={styles.appbar}>
+    <View style={styles.appbar} pointerEvents='none' >
         <Touchable
             style={styles.btn}
             onPress={goBack}
@@ -91,12 +91,6 @@ const MovieTop = ({scrollTop,goBack,name}) => (
         >
             <Icon name='favorite-border' size={20} color='#fff' />
         </Touchable>
-        <Animated.View style={[styles.fullcon, { backgroundColor: $.Color }, {
-            opacity: scrollTop.interpolate({
-                inputRange: [$.STATUS_HEIGHT, $.STATUS_HEIGHT + 50],
-                outputRange: [0, 1]
-            })
-        }]} />
     </View>
 )
 
@@ -169,11 +163,11 @@ class MovieSummary extends PureComponent {
     }
 
     render () {
-        const {moviedata:{desc,type},isRender} = this.props;
+        const {moviedata:{desc,type},isRender,scrollInnerEnd} = this.props;
         const {isMore} = this.state;
         const types = type&&type.split(' ').filter((el) => !!el);
         return (
-            <ScrollView style={{flex:1}}>
+            <ScrollView onScrollEndDrag={scrollInnerEnd} style={{flex:1}}>
                 <View style={styles.viewcon}>
                     <SortTitle title='剧情介绍'>
                         {
@@ -222,6 +216,7 @@ export default class extends PureComponent {
         moviedata : {},
         isRender : false,
         sourceTypeIndex : 0,
+        scrollEnabled: true,
         sources : {}
     }
 
@@ -275,14 +270,27 @@ export default class extends PureComponent {
         LayoutAnimation.easeInEaseOut();
     }
 
+    scrollEnd = (e) => {
+        if(e.nativeEvent.contentOffset.y>=($.WIDTH * 9 / 16-$.STATUS_HEIGHT-48)){
+            this.setState({scrollEnabled:false})
+        }
+    }
+
+    scrollInnerEnd = (e) => {
+        if(e.nativeEvent.contentOffset.y===0){
+            this.setState({scrollEnabled:true})
+        }
+    }
+
     render() {
         const { navigation } = this.props;
-        const { moviedata,sourceTypeIndex,isRender } = this.state;
+        const { moviedata,sourceTypeIndex,isRender,scrollEnabled } = this.state;
         return (
             <Animated.ScrollView
                 showsVerticalScrollIndicator={false}
                 stickyHeaderIndices={[0]}
-                
+                scrollEnabled={scrollEnabled}
+                onScrollEndDrag={this.scrollEnd}
                 //scrollEventThrottle={1}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: this.scrollTop } } }],
@@ -290,15 +298,21 @@ export default class extends PureComponent {
                 )}
             >
                 <MovieTop scrollTop={this.scrollTop} name={moviedata.name} />
-                <Animated.Image
-                    resizeMode='cover'
-                    blurRadius={3.5}
-                    source={{ uri: moviedata.img||'http' }}
-                    style={[styles.bg_place, {backgroundColor: $.Color}]} />
-                <View style={{height:$.WIDTH * 9 / 16-$.STATUS_HEIGHT-48}}></View>
+                <View style={[styles.bg_place, {backgroundColor: $.Color}]}>
+                    <Animated.Image
+                        resizeMode='cover'
+                        blurRadius={3.5}
+                        source={{ uri: moviedata.img||'http' }}
+                        style={[styles.bg_place_img,{
+                            opacity: this.scrollTop.interpolate({
+                                inputRange: [$.STATUS_HEIGHT, $.WIDTH * 9 / 16-$.STATUS_HEIGHT-48],
+                                outputRange: [0.9, 0]
+                            })
+                        }]} />
+                </View>
                 <ScrollViewPager tabBarOptions={tabBarOptions} >
                     <MovieInfo tablabel='影视简介' moviedata={moviedata} sourceTypeIndex={sourceTypeIndex} getSource={this.getSource} />
-                    <MovieSummary tablabel='剧情介绍' moviedata={moviedata} isRender={isRender} />
+                    <MovieSummary tablabel='剧情介绍' scrollInnerEnd={this.scrollInnerEnd} moviedata={moviedata} isRender={isRender} />
                 </ScrollViewPager>
                 
             </Animated.ScrollView>
@@ -321,6 +335,11 @@ const styles = StyleSheet.create({
     video_place: {
         height: $.WIDTH * 9 / 16,
         backgroundColor: '#000',
+    },
+    bg_place_img:{
+        width:'100%',
+        height:'100%',
+        opacity:.9
     },
     movieTitle: {
         fontSize: 16,
@@ -371,8 +390,9 @@ const styles = StyleSheet.create({
     },
     appbar: {
         paddingTop: $.STATUS_HEIGHT,
+        height: $.WIDTH * 9 / 16,
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         zIndex: 10
     },
     fullcon: {
@@ -396,7 +416,7 @@ const styles = StyleSheet.create({
     apptitle: {
         flex: 1,
         justifyContent: 'center',
-        alignSelf: 'stretch',
+        height:48,
         zIndex: 1
     },
     apptitletext: {
