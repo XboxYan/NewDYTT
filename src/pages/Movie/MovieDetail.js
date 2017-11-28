@@ -13,7 +13,7 @@ import {
     Animated,
     InteractionManager,
     Image,
-    StatusBar,
+    FlatList,
     Picker,
     LayoutAnimation,
     Text,
@@ -30,8 +30,8 @@ import Loading from '../../components/Loading';
 import axios from '../../util/axios';
 
 const tabBarOptions = {
-    wrapstyle:{
-        height:$.HEIGHT-$.STATUS_HEIGHT-48
+    wrapstyle: {
+        height: $.HEIGHT - $.STATUS_HEIGHT - 48
     },
     tabconStyle: {
         justifyContent: 'center',
@@ -50,22 +50,22 @@ const tabBarOptions = {
         fontSize: 14,
         color: '#666',
     },
-    activelabelStyle:{
-      transform:[{scale:1.05}],
-      color:$.Color
+    activelabelStyle: {
+        transform: [{ scale: 1.05 }],
+        color: $.Color
     },
     indicatorStyle: {
         backgroundColor: $.Color,
         height: 3,
-        marginBottom:3,
-        borderRadius:2,
+        marginBottom: 3,
+        borderRadius: 2,
         width: 20
     }
 }
 
 //头部
-const MovieTop = ({scrollTop,goBack,name}) => (
-    <View style={styles.appbar} pointerEvents='none' >
+const MovieTop = ({ goBack, name }) => (
+    <View style={styles.appbar}>
         <Touchable
             style={styles.btn}
             onPress={goBack}
@@ -73,18 +73,7 @@ const MovieTop = ({scrollTop,goBack,name}) => (
             <Icon name='keyboard-arrow-left' size={30} color='#fff' />
         </Touchable>
         <View style={styles.apptitle}>
-            <Animated.Text style={[styles.apptitletext, {
-                opacity: scrollTop.interpolate({
-                    inputRange: [$.STATUS_HEIGHT + 40, $.STATUS_HEIGHT + 41],
-                    outputRange: [1, 0]
-                })
-            }]} numberOfLines={1}>影视详情</Animated.Text>
-            <Animated.Text style={[styles.apptitletext, {
-                opacity: scrollTop.interpolate({
-                    inputRange: [$.STATUS_HEIGHT + 40, $.STATUS_HEIGHT + 41],
-                    outputRange: [0, 1]
-                })
-            }]} numberOfLines={1}>{name}</Animated.Text>
+            <Text style={styles.apptitletext} numberOfLines={1}>{name}</Text>
         </View>
         <Touchable
             style={styles.btn}
@@ -98,44 +87,27 @@ const MovieTop = ({scrollTop,goBack,name}) => (
 
 //视频
 const MovieInfo = ({
-        moviedata:{img,status,score,name,area,release,updateDate,sourceTypes=[{}]},
-        sourceTypeIndex,
-        getSource
+        moviedata: { img, status, score, name, area, release, updateDate, sourceTypes = [{}] },
+    sourceTypeIndex,
+    getSource
     }) => (
-    <View style={[styles.videobox]}>
-        <View style={styles.videostart} >
-            <View style={styles.poster}>
-                <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
-                <TouchableOpacity onPress={this.play} activeOpacity={.8} style={[styles.playbtn, { backgroundColor: $.Color }]}>
-                    <Icon name='play-arrow' size={24} color='#fff' />
-                </TouchableOpacity>
-            </View>
-            <View style={[styles.postertext,false&&{height:($.WIDTH-40)*9/16}]}>
-                <Text style={[styles.title, { color: $.Color }]}>{name}</Text>
-                <Star style={styles.score} score={score} />
-                {
-                    status && <Text style={styles.status}>{status}</Text>
-                }
-                <Text style={styles.subtitle}>{area} / {release}</Text>
-                <Text style={styles.subtitle}>{updateDate} 更新</Text>
-                <View style={styles.sourceType}>
-                    <Text style={styles.pickertitle}>来源 / </Text>
-                    <Text style={[styles.pickertitle, { color: $.Color }]}>{sourceTypes[sourceTypeIndex].desc}</Text>
-                    <Icon name='expand-more' size={20} color={$.Color} />
-                    <Picker
-                        style={styles.picker}
-                        selectedValue={'pos' + sourceTypeIndex}
-                        onValueChange={getSource}
-                        mode='dropdown'>
-                        {
-                            sourceTypes.map((el, i) => <Picker.Item color={sourceTypeIndex===i?$.Color:'#666'} key={i} label={el.desc + el.type || ''} value={'pos' + i} />)
-                        }
-                    </Picker>
+        <View style={styles.viewcon}>
+            <View style={styles.movieinfo} >
+                <View style={styles.poster}>
+                    <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
+                </View>
+                <View style={[styles.postertext, false && { height: ($.WIDTH - 40) * 9 / 16 }]}>
+                    <Text style={[styles.title, { color: $.Color }]}>{name}</Text>
+                    <Star style={styles.score} score={score} />
+                    {
+                        status && <Text style={styles.status}>{status}</Text>
+                    }
+                    <Text style={styles.subtitle}>{area} / {release}</Text>
+                    <Text style={styles.subtitle}>{updateDate} 更新</Text>
                 </View>
             </View>
         </View>
-    </View>
-)
+    )
 
 const SortTitle = (props) => (
     <View style={[styles.view_hd, { borderColor: $.Color }]}>
@@ -152,22 +124,37 @@ const TypeItem = (props) => (
     </TouchableOpacity>
 )
 
+//影片简介
 class MovieSummary extends PureComponent {
     state = {
-        isMore:false
+        isMore: false
     }
 
     expand = () => {
         LayoutAnimation.spring();
-        this.setState({isMore:!this.state.isMore})
+        this.setState({ isMore: !this.state.isMore })
     }
 
-    render () {
-        const {moviedata:{desc,type},isRender,scrollInnerEnd} = this.props;
-        const {isMore} = this.state;
-        const types = type&&type.split(' ').filter((el) => !!el);
+    render() {
+        const { moviedata: { desc, type, img, status, score, name, area, release, updateDate }, isRender, scrollInnerEnd,onContentSizeChange } = this.props;
+        const { isMore } = this.state;
+        const types = type && type.split(' ').filter((el) => !!el);
         return (
-            <ScrollView onScrollEndDrag={scrollInnerEnd} style={{flex:1}}>
+            <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex: 1 }}>
+                <View style={[styles.viewcon,styles.movieinfo]}>
+                    <View style={styles.poster}>
+                        <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
+                    </View>
+                    <View style={styles.postertext}>
+                        <Text style={[styles.title, { color: $.Color }]}>{name}</Text>
+                        <Star style={styles.score} score={score} />
+                        {
+                            status && <Text style={styles.status}>{status}</Text>
+                        }
+                        <Text style={styles.subtitle}>{area} / {release}</Text>
+                        <Text style={styles.subtitle}>{updateDate} 更新</Text>
+                    </View>
+                </View>
                 <View style={styles.viewcon}>
                     <SortTitle title='剧情介绍'>
                         {
@@ -184,10 +171,10 @@ class MovieSummary extends PureComponent {
                     <View style={styles.con}>
                         {
                             isRender
-                                ?
-                                <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc+desc}</Text>
-                                :
-                                <Loading size='small' text='' />
+                            ?
+                            <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc + desc}</Text>
+                            :
+                            <Loading size='small' text='' />
                         }
                     </View>
                     <View style={styles.con}>
@@ -203,39 +190,76 @@ class MovieSummary extends PureComponent {
     }
 }
 
+const SourceItem = ({ item }) => {
+    getUrl = () => {
+        
+    }
+    return (
+        <TouchableOpacity style={styles.sourceitem} activeOpacity={.7}>
+            <Text numberOfLines={2} style={styles.castname}>{item.name || ' '}</Text>
+            <View style={[styles.sourcedot, { backgroundColor: $.Color }, false && { opacity: 1 }]} />
+        </TouchableOpacity>
+    )
+}
+
+//影片资源
+class MovieSource extends PureComponent {
+    renderItem = ({ item, index }) => {
+        return <SourceItem item={item} />
+    }
+    render() {
+        const { moviedata:{sources},scrollInnerEnd,onContentSizeChange } = this.props;
+        if (sources.length === 0) {
+            return <Text style={[styles.sourceitem, { width: 50, marginLeft: 15 }]}>{' '}</Text>
+        }
+        return (
+            <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex: 1 }}>
+                <View style={styles.viewcon}>
+                    {
+                        sources.map((el)=><SourceItem key={el.aid} item={el} />)
+                    }
+                </View>
+            </ScrollView>
+        )
+    }
+}
+
 export default class extends PureComponent {
 
     constructor(props) {
         super(props);
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
-    
+
     movieId = '';
 
+    tabIndex = 0;
+
     state = {
-        moviedata : {},
-        isRender : false,
-        sourceTypeIndex : 0,
+        moviedata: {},
+        isRender: false,
+        sourceTypeIndex: 0,
         scrollEnabled: true,
-        sources : {}
+        alwaysEnabled: [false,false],
+        sources: {}
     }
 
     scrollTop = new Animated.Value(0);
 
     getData = async (id) => {
-        
-        const data = await axios.get('/video',{
-            params:{
-                videoId:id,
+
+        const data = await axios.get('/video', {
+            params: {
+                videoId: id,
             }
         })
 
         LayoutAnimation.spring();
 
         this.setState({
-            moviedata:data.data.body,
-            isRender:true,
-            sources:data.data.body.sources
+            moviedata: data.data.body,
+            isRender: true,
+            sources: data.data.body.sources
         })
 
         //console.warn(data.data.body)
@@ -243,21 +267,21 @@ export default class extends PureComponent {
     }
 
     getSource = async (value, position) => {
-        const {moviedata:{sourceTypes}} = this.state;
-        const data = await axios.get('/videosource',{
-            params:{
-                movieId:this.movieId,
+        const { moviedata: { sourceTypes } } = this.state;
+        const data = await axios.get('/videosource', {
+            params: {
+                movieId: this.movieId,
                 type: sourceTypes[position].type,
                 name: sourceTypes[position].name
             }
         })
         this.setState({
-            sources:data.data.body,
-            sourceTypeIndex:position
+            sources: data.data.body,
+            sourceTypeIndex: position
         });
-        console.warn(data.data.body)
+        //console.warn(data.data.body)
     }
-    
+
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
             const { params: { movieId } } = this.props.navigation.state;
@@ -266,55 +290,80 @@ export default class extends PureComponent {
         })
     }
 
+    onContentSizeChange = (contentWidth, contentHeight) => {
+        console.warn(contentHeight)
+        if(contentHeight<($.HEIGHT - $.STATUS_HEIGHT - 48 - 40)){
+            this.setAlwaysEnabled(true,this.tabIndex);
+        }else{
+            this.setAlwaysEnabled(false,this.tabIndex);
+        }
+    }
+
     componentWillUpdate() {
         LayoutAnimation.easeInEaseOut();
     }
 
     scrollEnd = (e) => {
-        if(e.nativeEvent.contentOffset.y>=($.WIDTH * 9 / 16-$.STATUS_HEIGHT-48)){
-            this.setState({scrollEnabled:false})
+        if (e.nativeEvent.contentOffset.y >= ($.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48)&&!this.state.alwaysEnabled[this.tabIndex]) {
+            this.setScrollEnabled(false);
         }
     }
 
+    setScrollEnabled = (scrollEnabled) => {
+        this.setState({ scrollEnabled });
+    }
+
+    setAlwaysEnabled = (bool,i) => {
+        let {alwaysEnabled} = this.state;
+        alwaysEnabled[i]=bool;
+        this.setState({ alwaysEnabled });
+    }
+
     scrollInnerEnd = (e) => {
-        if(e.nativeEvent.contentOffset.y===0){
-            this.setState({scrollEnabled:true})
+        if (e.nativeEvent.contentOffset.y <= 1) {
+            this.setScrollEnabled(true);
         }
+    }
+
+    onPageSelected = (i) => {
+        console.warn(this.state.alwaysEnabled[i])
+        this.setAlwaysEnabled(this.state.alwaysEnabled[i]);
+        this.tabIndex = i;
     }
 
     render() {
         const { navigation } = this.props;
-        const { moviedata,sourceTypeIndex,isRender,scrollEnabled } = this.state;
+        const { moviedata, sourceTypeIndex, isRender, scrollEnabled } = this.state;
         return (
             <Animated.ScrollView
                 showsVerticalScrollIndicator={false}
                 stickyHeaderIndices={[0]}
                 scrollEnabled={scrollEnabled}
                 onScrollEndDrag={this.scrollEnd}
-                //scrollEventThrottle={1}
+                scrollEventThrottle={1}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: this.scrollTop } } }],
-                    //{ useNativeDriver: true } // <-- 加上这一行
+                    { useNativeDriver: true } // <-- 加上这一行
                 )}
             >
                 <MovieTop scrollTop={this.scrollTop} name={moviedata.name} />
-                <View style={[styles.bg_place, {backgroundColor: $.Color}]}>
+                <View style={[styles.bg_place, { backgroundColor: $.Color }]}>
                     <Animated.Image
                         resizeMode='cover'
                         blurRadius={3.5}
-                        source={{ uri: moviedata.img||'http' }}
-                        style={[styles.bg_place_img,{
+                        source={{ uri: moviedata.img || 'http' }}
+                        style={[styles.bg_place_img, {
                             opacity: this.scrollTop.interpolate({
-                                inputRange: [$.STATUS_HEIGHT, $.WIDTH * 9 / 16-$.STATUS_HEIGHT-48],
+                                inputRange: [$.STATUS_HEIGHT, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
                                 outputRange: [0.9, 0]
                             })
                         }]} />
                 </View>
-                <ScrollViewPager tabBarOptions={tabBarOptions} >
-                    <MovieInfo tablabel='影视简介' moviedata={moviedata} sourceTypeIndex={sourceTypeIndex} getSource={this.getSource} />
-                    <MovieSummary tablabel='剧情介绍' scrollInnerEnd={this.scrollInnerEnd} moviedata={moviedata} isRender={isRender} />
+                <ScrollViewPager onPageSelected={this.onPageSelected} tabBarOptions={tabBarOptions} >
+                    <MovieSummary tablabel='剧情介绍' scrollInnerEnd={this.scrollInnerEnd} onContentSizeChange={this.onContentSizeChange} moviedata={moviedata} isRender={isRender} />
+                    <MovieSource tablabel='选集' scrollInnerEnd={this.scrollInnerEnd} onContentSizeChange={this.onContentSizeChange} moviedata={moviedata} />
                 </ScrollViewPager>
-                
+
             </Animated.ScrollView>
         )
     }
@@ -325,21 +374,17 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     bg_place: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        right: 0,
-        opacity: .9,
+        marginTop: -($.STATUS_HEIGHT + 48),
         height: $.WIDTH * 9 / 16
     },
     video_place: {
         height: $.WIDTH * 9 / 16,
         backgroundColor: '#000',
     },
-    bg_place_img:{
-        width:'100%',
-        height:'100%',
-        opacity:.9
+    bg_place_img: {
+        width: '100%',
+        height: '100%',
+        opacity: .9
     },
     movieTitle: {
         fontSize: 16,
@@ -390,7 +435,6 @@ const styles = StyleSheet.create({
     },
     appbar: {
         paddingTop: $.STATUS_HEIGHT,
-        height: $.WIDTH * 9 / 16,
         flexDirection: 'row',
         alignItems: 'flex-start',
         zIndex: 10
@@ -416,7 +460,7 @@ const styles = StyleSheet.create({
     apptitle: {
         flex: 1,
         justifyContent: 'center',
-        height:48,
+        height: 48,
         zIndex: 1
     },
     apptitletext: {
@@ -428,10 +472,10 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 3,
         backgroundColor: '#f1f1f1',
-        width: 110,
-        height: 160,
+        width: 80,
+        height: 120,
         marginHorizontal: 10,
-        justifyContent:'center',
+        justifyContent: 'center',
         alignItems: 'center'
     },
     postertext: {
@@ -453,14 +497,14 @@ const styles = StyleSheet.create({
         color: '#666'
     },
     playbtn: {
-        position:'absolute',
-        zIndex:10,
+        position: 'absolute',
+        zIndex: 10,
         height: 34,
-        width:34,
+        width: 34,
         borderRadius: 17,
-        justifyContent:'center',
+        justifyContent: 'center',
         alignItems: 'center',
-        opacity:.9
+        opacity: .9
     },
     playtext: {
         fontSize: 14,
@@ -580,7 +624,7 @@ const styles = StyleSheet.create({
         height: 30,
         left: 30,
         padding: 0,
-        backgroundColor:'#fff',
+        backgroundColor: '#fff',
         opacity: 0,
         position: 'absolute'
     },
@@ -606,19 +650,17 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
         transform: [{ rotateX: '180deg' }]
     },
-    closebtn:{
+    closebtn: {
         position: 'absolute',
         right: 0,
         top: 0,
-        padding:10
+        padding: 10
     },
     videobox: {
         margin: 10,
     },
-    videostart:{
-        paddingVertical: 10,
-        backgroundColor:'#fff',
-        borderRadius:3,
-        flexDirection:'row'
+    movieinfo: {
+        flexDirection: 'row',
+        marginBottom:0
     }
 })
