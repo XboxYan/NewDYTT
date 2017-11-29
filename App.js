@@ -27,7 +27,7 @@ const TabNavigatorConfig = {
 const StackNavigatorConfig = {
     headerMode:'none',
     cardStyle:{
-        backgroundColor:'#f1f1f1',
+        backgroundColor:'#fff',
     },
     navigationOptions:{
         gesturesEnabled:true

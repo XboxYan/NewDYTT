@@ -208,7 +208,8 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: 3,
         backgroundColor: '#f1f1f1',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        elevation :5
     },
     bannerimg: {
         width: '100%',

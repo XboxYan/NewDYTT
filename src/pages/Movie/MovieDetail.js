@@ -39,7 +39,7 @@ const tabBarOptions = {
         //paddingHorizontal:15
     },
     style: {
-        backgroundColor: '#fff',
+        backgroundColor: '#f7f7f7',
     },
     scrollEnabled: true,
     tabStyle: {
@@ -65,7 +65,7 @@ const tabBarOptions = {
 }
 
 //头部
-const MovieTop = ({ goBack, name }) => (
+const MovieTop = ({ goBack,scrollTop, name }) => (
     <View style={styles.appbar}>
         <Touchable
             style={styles.btn}
@@ -74,48 +74,18 @@ const MovieTop = ({ goBack, name }) => (
             <Icon name='keyboard-arrow-left' size={30} color='#fff' />
         </Touchable>
         <View style={styles.apptitle}>
-            <Text style={styles.apptitletext} numberOfLines={1}>{name}</Text>
+            <Animated.Text style={[styles.apptitletext,{
+                opacity:scrollTop.interpolate({
+                    inputRange: [$.WIDTH * 9 / 16-100, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
+                    outputRange: [0, 1]
+                }),
+            }]} numberOfLines={1}>{name}</Animated.Text>
         </View>
         <Touchable
             style={styles.btn}
         >
             <Icon name='favorite-border' size={20} color='#fff' />
         </Touchable>
-    </View>
-)
-
-
-
-//视频
-const MovieInfo = ({
-        moviedata: { img, status, score, name, area, release, updateDate, sourceTypes = [{}] },
-    sourceTypeIndex,
-    getSource
-    }) => (
-        <View style={styles.viewcon}>
-            <View style={styles.movieinfo} >
-                <View style={styles.poster}>
-                    <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
-                </View>
-                <View style={[styles.postertext, false && { height: ($.WIDTH - 40) * 9 / 16 }]}>
-                    <Text style={[styles.title, { color: $.Color }]}>{name}</Text>
-                    <Star style={styles.score} score={score} />
-                    {
-                        status && <Text style={styles.status}>{status}</Text>
-                    }
-                    <Text style={styles.subtitle}>{area} / {release}</Text>
-                    <Text style={styles.subtitle}>{updateDate} 更新</Text>
-                </View>
-            </View>
-        </View>
-    )
-
-const SortTitle = (props) => (
-    <View style={[styles.view_hd, { borderColor: $.Color }]}>
-        <Text style={styles.view_title}>{props.title}</Text>
-        {
-            props.children || null
-        }
     </View>
 )
 
@@ -137,52 +107,41 @@ class MovieSummary extends PureComponent {
     }
 
     render() {
-        const { moviedata: { desc, type, img, status, score, name, area, release, updateDate }, isRender, scrollInnerEnd,onContentSizeChange } = this.props;
+        const { moviedata: { desc, type, img, status, score, name, area, release, updateDate,actors }, isRender, scrollInnerEnd,onContentSizeChange } = this.props;
         const { isMore } = this.state;
         const types = type && type.split(' ').filter((el) => !!el);
         return (
             <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex: 1 }}>
-                <View style={[styles.viewcon,styles.movieinfo]}>
-                    <View style={styles.poster}>
-                        <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
-                    </View>
-                    <View style={styles.postertext}>
-                        <Text style={[styles.title, { color: $.Color }]}>{name}</Text>
-                        <Star style={styles.score} score={score} />
-                        {
-                            status && <Text style={styles.status}>{status}</Text>
-                        }
-                        <Text style={styles.subtitle}>{area} / {release}</Text>
-                        <Text style={styles.subtitle}>{updateDate} 更新</Text>
-                    </View>
-                </View>
+                
                 <View style={styles.viewcon}>
-                    <SortTitle title='剧情介绍'>
-                        {
-                            isRender &&
-                            <TouchableOpacity
-                                onPress={this.expand}
-                                style={styles.view_more}
-                            >
-                                <Text style={styles.view_moretext}>{isMore ? '收起' : '展开'}</Text>
-                                <Icon name={isMore ? 'expand-less' : 'expand-more'} size={20} color={$.Color} />
-                            </TouchableOpacity>
-                        }
-                    </SortTitle>
-                    <View style={styles.con}>
-                        {
-                            isRender
-                            ?
-                            <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc + desc}</Text>
-                            :
-                            <Loading size='small' text='' />
-                        }
+                    <View style={styles.movieinfo}>
+                        <View style={styles.poster}>
+                            <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
+                        </View>
+                        <View style={styles.postertext}>
+                            <Text style={styles.subtitle}>{release} - {area}</Text>
+                            <Star score={score} />
+                            {
+                                status&&<Text style={styles.subtitle}>状态 / {status}</Text>
+                            }
+                            <Text style={styles.subtitle}>更新 / {updateDate}</Text>
+                            <Text style={styles.subtitle} numberOfLines={2}>人物 / {actors}</Text>
+                        </View>
                     </View>
                     <View style={styles.con}>
                         {
                             isRender && types.map((el, i) => (
                                 <TypeItem key={i} item={el} />
                             ))
+                        }
+                    </View>
+                    <View style={styles.con}>
+                        {
+                            isRender
+                            ?
+                            <Text style={styles.text}>{desc}</Text>
+                            :
+                            <Loading size='small' text='' />
                         }
                     </View>
                 </View>
@@ -362,6 +321,21 @@ export default class extends PureComponent {
                             outputRange: [0,0, 1]
                         }) 
                     }]}/>
+                    <Animated.Text style={[styles.toptitle,{
+                        opacity:this.scrollTop.interpolate({
+                            inputRange: [50, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
+                            outputRange: [1, 0]
+                        }),
+                        transform: [{
+                            translateX: this.scrollTop.interpolate({
+                                inputRange: [0, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
+                                outputRange: [0, 28]
+                            })
+                            
+                        }]
+                    }]}>
+                        {moviedata.name}
+                    </Animated.Text>
                 </ImageBackground>
                 <ScrollViewPager onPageSelected={this.onPageSelected} tabBarOptions={tabBarOptions} >
                     <MovieSummary tablabel='剧情介绍' scrollInnerEnd={this.scrollInnerEnd} onContentSizeChange={this.onContentSizeChange} moviedata={moviedata} isRender={isRender} />
@@ -380,7 +354,17 @@ const styles = StyleSheet.create({
     bg_place: {
         marginTop: -($.STATUS_HEIGHT + 48),
         height: $.WIDTH * 9 / 16,
-        opacity:.9
+        opacity:.9,
+    },
+    toptitle: {
+        position:'absolute',
+        right:0,
+        left:0,
+        fontSize:30,
+        color:'#fff',
+        bottom:10,
+        paddingLeft:20,
+        justifyContent:'center'
     },
     video_place: {
         height: $.WIDTH * 9 / 16,
@@ -392,54 +376,28 @@ const styles = StyleSheet.create({
         top:0,
         right:0,
         bottom:0,
-        opacity:0
-    },
-    movieTitle: {
-        fontSize: 16,
-        color: '#333',
-        padding: 15,
-        backgroundColor: '#fff'
+        opacity:0,
     },
     viewcon: {
         margin: 10,
-        backgroundColor: '#fff',
-        paddingVertical: 10,
-        borderRadius: 3,
+        //backgroundColor: '#fff',
+        //paddingVertical: 10,
+        //borderRadius: 3,
+        //elevation:3
     },
     row: {
         flexDirection: 'row'
     },
-    view_hd: {
-        height: 15,
-        borderLeftWidth: 3,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        marginVertical: 10,
-    },
-    view_title: {
-        fontSize: 15,
-        color: '#333',
-        flex: 1
-    },
     con: {
-        paddingHorizontal: 15,
-        paddingBottom: 5,
+        margin:5,
         flexWrap: 'wrap',
         flexDirection: 'row'
     },
     text: {
         fontSize: 14,
         color: '#666',
+        marginTop:5,
         lineHeight: 20
-    },
-    fullScreen: {
-        position: 'absolute',
-        zIndex: 10,
-        top: 0,
-        left: 0,
-        right: 0,
-        height: $.WIDTH * 9 / 16
     },
     appbar: {
         paddingTop: $.STATUS_HEIGHT,
@@ -473,80 +431,31 @@ const styles = StyleSheet.create({
     },
     apptitletext: {
         position: 'absolute',
+        opacity:0,
         fontSize: 16,
         color: '#fff',
     },
     poster: {
-        padding: 10,
         borderRadius: 3,
         backgroundColor: '#f1f1f1',
         width: 80,
         height: 120,
-        marginHorizontal: 10,
+        marginRight: 5,
         justifyContent: 'center',
         alignItems: 'center'
     },
     postertext: {
         flex: 1,
-        marginRight: 10,
-        marginLeft: 5,
-    },
-    title: {
-        fontSize: 18,
-        color: '#333',
+        marginHorizontal:10
     },
     subtitle: {
-        fontSize: 14,
-        color: '#666',
-        paddingTop: 3
+        fontSize: 13,
+        color: '#888',
+        paddingVertical:2
     },
     sptext: {
         fontStyle: 'italic',
-        color: '#666'
-    },
-    playbtn: {
-        position: 'absolute',
-        zIndex: 10,
-        height: 34,
-        width: 34,
-        borderRadius: 17,
-        justifyContent: 'center',
-        alignItems: 'center',
-        opacity: .9
-    },
-    playtext: {
-        fontSize: 14,
-        color: '#fff'
-    },
-    castitem: {
-        alignItems: 'center',
-        marginRight: 10,
-        width: 60,
-
-    },
-    castimgwrap: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f1f1f1',
-        overflow: 'hidden'
-    },
-    castimg: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        position: 'absolute'
-    },
-    casttitle: {
-        position: 'absolute',
-        fontSize: 30,
-        color: '#999'
-    },
-    castname: {
-        fontSize: 14,
-        color: '#666',
+        color: '#777'
     },
     typeitem: {
         backgroundColor: '#f1f1f1',
@@ -558,9 +467,9 @@ const styles = StyleSheet.create({
         marginRight: 10
     },
     typename: {
-        fontSize: 14,
+        fontSize: 13,
         minWidth: 20,
-        color: '#666'
+        color: '#777'
     },
     star: {
         marginVertical: 5
@@ -574,32 +483,6 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         color: '#fff',
         backgroundColor: 'rgba(0,0,0,.4)'
-    },
-    director: {
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        fontSize: 10,
-        paddingHorizontal: 5,
-        paddingVertical: 2,
-        fontWeight: 'bold',
-        borderRadius: 8,
-        color: '#fff'
-    },
-    commentbtn: {
-        marginHorizontal: 10,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    view_more: {
-        flexDirection: 'row',
-        alignSelf: 'stretch',
-        alignItems: 'center',
-    },
-    view_moretext: {
-        fontSize: 13,
-        color: '#999'
     },
     sourcelist: {
         paddingHorizontal: 15
@@ -669,6 +552,6 @@ const styles = StyleSheet.create({
     },
     movieinfo: {
         flexDirection: 'row',
-        marginBottom:0
+        margin:5
     }
 })
