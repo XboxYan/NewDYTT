@@ -13,6 +13,7 @@ import {
     Animated,
     InteractionManager,
     Image,
+    ImageBackground,
     FlatList,
     Picker,
     LayoutAnimation,
@@ -208,10 +209,7 @@ class MovieSource extends PureComponent {
         return <SourceItem item={item} />
     }
     render() {
-        const { moviedata:{sources},scrollInnerEnd,onContentSizeChange } = this.props;
-        if (sources.length === 0) {
-            return <Text style={[styles.sourceitem, { width: 50, marginLeft: 15 }]}>{' '}</Text>
-        }
+        const { moviedata:{sources=[]},scrollInnerEnd,onContentSizeChange } = this.props;
         return (
             <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex: 1 }}>
                 <View style={styles.viewcon}>
@@ -240,7 +238,7 @@ export default class extends PureComponent {
         isRender: false,
         sourceTypeIndex: 0,
         scrollEnabled: true,
-        alwaysEnabled: [false,false],
+        alwaysEnabled: [true,true],
         sources: {}
     }
 
@@ -291,9 +289,10 @@ export default class extends PureComponent {
     }
 
     onContentSizeChange = (contentWidth, contentHeight) => {
-        console.warn(contentHeight)
+        //console.warn(contentHeight)
         if(contentHeight<($.HEIGHT - $.STATUS_HEIGHT - 48 - 40)){
             this.setAlwaysEnabled(true,this.tabIndex);
+            this.setScrollEnabled(true);
         }else{
             this.setAlwaysEnabled(false,this.tabIndex);
         }
@@ -326,8 +325,12 @@ export default class extends PureComponent {
     }
 
     onPageSelected = (i) => {
-        console.warn(this.state.alwaysEnabled[i])
-        this.setAlwaysEnabled(this.state.alwaysEnabled[i]);
+        const bool = this.state.alwaysEnabled[i];
+        if(!bool){
+            this.scrollview.getNode().scrollToEnd();
+        }
+        this.setAlwaysEnabled(bool);
+        this.setScrollEnabled(bool);
         this.tabIndex = i;
     }
 
@@ -340,25 +343,26 @@ export default class extends PureComponent {
                 stickyHeaderIndices={[0]}
                 scrollEnabled={scrollEnabled}
                 onScrollEndDrag={this.scrollEnd}
-                scrollEventThrottle={1}
+                ref={(ref)=>this.scrollview=ref}
+                //scrollEventThrottle={1}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: this.scrollTop } } }],
-                    { useNativeDriver: true } // <-- 加上这一行
+                    //{ useNativeDriver: true } // <-- 加上这一行
                 )}
             >
                 <MovieTop scrollTop={this.scrollTop} name={moviedata.name} />
-                <View style={[styles.bg_place, { backgroundColor: $.Color }]}>
-                    <Animated.Image
-                        resizeMode='cover'
-                        blurRadius={3.5}
-                        source={{ uri: moviedata.img || 'http' }}
-                        style={[styles.bg_place_img, {
-                            opacity: this.scrollTop.interpolate({
-                                inputRange: [$.STATUS_HEIGHT, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
-                                outputRange: [0.9, 0]
-                            })
-                        }]} />
-                </View>
+                <ImageBackground
+                    resizeMode='cover'
+                    blurRadius={3.5}
+                    source={{ uri: moviedata.img || 'http' }}
+                    style={[styles.bg_place,{backgroundColor: $.Color}]}>
+                    <Animated.View pointerEvents="none" style={[styles.bg_place_img, { backgroundColor: $.Color,
+                        opacity: this.scrollTop.interpolate({
+                            inputRange: [0,$.STATUS_HEIGHT, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
+                            outputRange: [0,0, 1]
+                        }) 
+                    }]}/>
+                </ImageBackground>
                 <ScrollViewPager onPageSelected={this.onPageSelected} tabBarOptions={tabBarOptions} >
                     <MovieSummary tablabel='剧情介绍' scrollInnerEnd={this.scrollInnerEnd} onContentSizeChange={this.onContentSizeChange} moviedata={moviedata} isRender={isRender} />
                     <MovieSource tablabel='选集' scrollInnerEnd={this.scrollInnerEnd} onContentSizeChange={this.onContentSizeChange} moviedata={moviedata} />
@@ -375,16 +379,20 @@ const styles = StyleSheet.create({
     },
     bg_place: {
         marginTop: -($.STATUS_HEIGHT + 48),
-        height: $.WIDTH * 9 / 16
+        height: $.WIDTH * 9 / 16,
+        opacity:.9
     },
     video_place: {
         height: $.WIDTH * 9 / 16,
         backgroundColor: '#000',
     },
     bg_place_img: {
-        width: '100%',
-        height: '100%',
-        opacity: .9
+        position:'absolute',
+        left:0,
+        top:0,
+        right:0,
+        bottom:0,
+        opacity:0
     },
     movieTitle: {
         fontSize: 16,
