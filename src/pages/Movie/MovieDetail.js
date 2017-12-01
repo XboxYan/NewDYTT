@@ -36,13 +36,14 @@ const tabBarOptions = {
     },
     tabconStyle: {
         justifyContent: 'center',
-        //paddingHorizontal:15
+        paddingHorizontal:($.WIDTH-200)*.5
     },
     style: {
         backgroundColor: '#f7f7f7',
     },
     scrollEnabled: true,
     tabStyle: {
+        width:100,
         height: 40,
         paddingHorizontal: 15,
         //width:100
@@ -167,11 +168,26 @@ class MovieSource extends PureComponent {
     renderItem = ({ item, index }) => {
         return <SourceItem item={item} />
     }
+    state = {
+        isRender:false
+    }
+    componentDidMount() {
+        InteractionManager.runAfterInteractions(() => {
+            setTimeout(()=>{
+                this.setState({isRender:true})
+            },300)
+            
+        })
+    }
     render() {
+        const {isRender} = this.state;
+        if(!isRender){
+            return <View style={{height:$.HEIGHT-$.WIDTH * 9 / 16-40}}><Loading size={'small'} text='' /></View>
+        }
         const { moviedata:{sources=[]},scrollInnerEnd,onContentSizeChange } = this.props;
         return (
             <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex: 1 }}>
-                <View style={styles.viewcon}>
+                <View style={styles.sourcelist}>
                     {
                         sources.map((el)=><SourceItem key={el.aid} item={el} />)
                     }
@@ -219,6 +235,7 @@ export default class extends PureComponent {
             sources: data.data.body.sources
         })
 
+        this.scrollview.getNode().scrollTo({y:.3});
         //console.warn(data.data.body)
 
     }
@@ -262,8 +279,13 @@ export default class extends PureComponent {
     }
 
     scrollEnd = (e) => {
-        if (e.nativeEvent.contentOffset.y >= ($.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48)&&!this.state.alwaysEnabled[this.tabIndex]) {
-            this.setScrollEnabled(false);
+        if(e.nativeEvent.contentOffset.y >=($.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48)*.5){
+            this.scrollview.getNode().scrollToEnd();
+            if(!this.state.alwaysEnabled[this.tabIndex]){
+                this.setScrollEnabled(false);
+            }
+        }else{
+            this.scrollview.getNode().scrollTo({y:0});
         }
     }
 
@@ -303,10 +325,10 @@ export default class extends PureComponent {
                 scrollEnabled={scrollEnabled}
                 onScrollEndDrag={this.scrollEnd}
                 ref={(ref)=>this.scrollview=ref}
-                //scrollEventThrottle={1}
+                scrollEventThrottle={1}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: this.scrollTop } } }],
-                    //{ useNativeDriver: true } // <-- 加上这一行
+                    { useNativeDriver: true } // <-- 加上这一行
                 )}
             >
                 <MovieTop scrollTop={this.scrollTop} name={moviedata.name} />
@@ -318,7 +340,7 @@ export default class extends PureComponent {
                     <Animated.View pointerEvents="none" style={[styles.bg_place_img, { backgroundColor: $.Color,
                         opacity: this.scrollTop.interpolate({
                             inputRange: [0,$.STATUS_HEIGHT, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
-                            outputRange: [0,0, 1]
+                            outputRange: [.1,.1, 1]
                         }) 
                     }]}/>
                     <Animated.Text style={[styles.toptitle,{
@@ -354,7 +376,6 @@ const styles = StyleSheet.create({
     bg_place: {
         marginTop: -($.STATUS_HEIGHT + 48),
         height: $.WIDTH * 9 / 16,
-        opacity:.9,
     },
     toptitle: {
         position:'absolute',
@@ -376,7 +397,7 @@ const styles = StyleSheet.create({
         top:0,
         right:0,
         bottom:0,
-        opacity:0,
+        opacity:.1,
     },
     viewcon: {
         margin: 10,
@@ -485,12 +506,15 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,.4)'
     },
     sourcelist: {
-        paddingHorizontal: 15
+        paddingLeft: 10,
+        paddingVertical:5,
+        flexDirection:'row',
+        flexWrap:'wrap'
     },
     sourceitem: {
         backgroundColor: '#f1f1f1',
-        minWidth: 50,
-        maxWidth: 150,
+        minWidth:($.WIDTH-60)/5,
+        maxWidth: ($.WIDTH-40)/3,
         borderBottomRightRadius: 10,
         borderTopLeftRadius: 10,
         justifyContent: 'center',

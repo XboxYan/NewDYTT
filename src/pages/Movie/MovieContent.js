@@ -135,7 +135,7 @@ export default class extends PureComponent {
         return (
             <Swiper dotColor={$.Color} style={styles.bannerWrap}>
                 {
-                    bannerDatas.slice(0,6).map((el, i) => <BannerItem navigation={this.props.navigation} data={el} key={i + el.id} />)
+                    bannerDatas.map((el, i) => <BannerItem navigation={this.props.navigation} data={el} key={i + el.id} />)
                 }
             </Swiper>
         )
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
         borderRadius: 3,
         backgroundColor: '#f1f1f1',
         overflow: 'hidden',
-        elevation :5
+        //elevation :5
     },
     bannerimg: {
         width: '100%',
