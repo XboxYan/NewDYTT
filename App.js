@@ -17,7 +17,7 @@ const TabNavigatorConfig = {
         showLabel:false,
         style:{
             height:48,
-            backgroundColor: '#fff',
+            backgroundColor: '#f7f7f7',
             borderTopWidth:0,
         }
     }
@@ -27,7 +27,7 @@ const TabNavigatorConfig = {
 const StackNavigatorConfig = {
     headerMode:'none',
     cardStyle:{
-        backgroundColor:'#fff',
+        backgroundColor:'#f1f1f1',
     },
     navigationOptions:{
         gesturesEnabled:true

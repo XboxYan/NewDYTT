@@ -75,18 +75,28 @@ const MovieTop = ({ goBack,scrollTop, name }) => (
             <Icon name='keyboard-arrow-left' size={30} color='#fff' />
         </Touchable>
         <View style={styles.apptitle}>
-            <Animated.Text style={[styles.apptitletext,{
-                opacity:scrollTop.interpolate({
-                    inputRange: [$.WIDTH * 9 / 16-100, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
-                    outputRange: [0, 1]
-                }),
-            }]} numberOfLines={1}>{name}</Animated.Text>
+            <Text style={styles.apptitletext} numberOfLines={1}>{name}</Text>
         </View>
         <Touchable
             style={styles.btn}
         >
             <Icon name='favorite-border' size={20} color='#fff' />
         </Touchable>
+        <Animated.View style={[styles.fullcon, { backgroundColor: $.Color }, {
+            opacity: scrollTop.interpolate({
+                inputRange: [$.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48.1 , $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
+                outputRange: [0, 1]
+            })
+        }]} />
+    </View>
+)
+
+const SortTitle = (props) => (
+    <View style={[styles.view_hd, { borderColor: $.Color }]}>
+        <Text style={styles.view_title}>{props.title}</Text>
+        {
+            props.children || null
+        }
     </View>
 )
 
@@ -112,37 +122,48 @@ class MovieSummary extends PureComponent {
         const { isMore } = this.state;
         const types = type && type.split(' ').filter((el) => !!el);
         return (
-            <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex: 1 }}>
-                
+            <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex:1 }}>  
+                <View style={[styles.viewcon,styles.movieinfo]}>
+                    <View style={styles.poster}>
+                        <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
+                    </View>
+                    <View style={styles.postertext}>
+                        <Text style={styles.subtitle}>{release} - {area}</Text>
+                        <Star score={score} />
+                        {
+                            status&&<Text style={styles.subtitle}>状态 / {status}</Text>
+                        }
+                        <Text style={styles.subtitle}>更新 / {updateDate}</Text>
+                        <Text style={styles.subtitle} numberOfLines={2}>人物 / {actors}</Text>
+                    </View>
+                </View>
                 <View style={styles.viewcon}>
-                    <View style={styles.movieinfo}>
-                        <View style={styles.poster}>
-                            <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
-                        </View>
-                        <View style={styles.postertext}>
-                            <Text style={styles.subtitle}>{release} - {area}</Text>
-                            <Star score={score} />
-                            {
-                                status&&<Text style={styles.subtitle}>状态 / {status}</Text>
-                            }
-                            <Text style={styles.subtitle}>更新 / {updateDate}</Text>
-                            <Text style={styles.subtitle} numberOfLines={2}>人物 / {actors}</Text>
-                        </View>
+                    <SortTitle title='剧情介绍'>
+                        {
+                            isRender &&
+                            <TouchableOpacity
+                                onPress={this.expand}
+                                style={styles.view_more}
+                            >
+                                <Text style={styles.view_moretext}>{isMore ? '收起' : '展开'}</Text>
+                                <Icon name={isMore ? 'expand-less' : 'expand-more'} size={20} color={$.Color} />
+                            </TouchableOpacity>
+                        }
+                    </SortTitle>
+                    <View style={styles.con}>
+                        {
+                            isRender
+                            ?
+                            <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc+desc+desc}</Text>
+                            :
+                            <Loading size='small' text='' />
+                        }
                     </View>
                     <View style={styles.con}>
                         {
                             isRender && types.map((el, i) => (
                                 <TypeItem key={i} item={el} />
                             ))
-                        }
-                    </View>
-                    <View style={styles.con}>
-                        {
-                            isRender
-                            ?
-                            <Text style={styles.text}>{desc}</Text>
-                            :
-                            <Loading size='small' text='' />
                         }
                     </View>
                 </View>
@@ -235,7 +256,7 @@ export default class extends PureComponent {
             sources: data.data.body.sources
         })
 
-        this.scrollview.getNode().scrollTo({y:.3});
+        //this.scrollview.getNode().scrollTo({y:.3});
         //console.warn(data.data.body)
 
     }
@@ -267,10 +288,10 @@ export default class extends PureComponent {
     onContentSizeChange = (contentWidth, contentHeight) => {
         //console.warn(contentHeight)
         if(contentHeight<($.HEIGHT - $.STATUS_HEIGHT - 48 - 40)){
-            this.setAlwaysEnabled(true,this.tabIndex);
-            this.setScrollEnabled(true);
+            //this.setAlwaysEnabled(true,this.tabIndex);
+            //this.setScrollEnabled(true);
         }else{
-            this.setAlwaysEnabled(false,this.tabIndex);
+            //this.setAlwaysEnabled(false,this.tabIndex);
         }
     }
 
@@ -280,12 +301,12 @@ export default class extends PureComponent {
 
     scrollEnd = (e) => {
         if(e.nativeEvent.contentOffset.y >=($.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48)*.5){
-            this.scrollview.getNode().scrollToEnd();
+            //this.scrollview.getNode().scrollToEnd();
             if(!this.state.alwaysEnabled[this.tabIndex]){
-                this.setScrollEnabled(false);
+                //this.setScrollEnabled(false);
             }
         }else{
-            this.scrollview.getNode().scrollTo({y:0});
+            //this.scrollview.getNode().scrollTo({y:0});
         }
     }
 
@@ -295,13 +316,13 @@ export default class extends PureComponent {
 
     setAlwaysEnabled = (bool,i) => {
         let {alwaysEnabled} = this.state;
-        alwaysEnabled[i]=bool;
-        this.setState({ alwaysEnabled });
+        //alwaysEnabled[i]=bool;
+        //this.setState({ alwaysEnabled });
     }
 
     scrollInnerEnd = (e) => {
         if (e.nativeEvent.contentOffset.y <= 1) {
-            this.setScrollEnabled(true);
+            //this.setScrollEnabled(true);
         }
     }
 
@@ -343,27 +364,15 @@ export default class extends PureComponent {
                             outputRange: [.1,.1, 1]
                         }) 
                     }]}/>
-                    <Animated.Text style={[styles.toptitle,{
-                        opacity:this.scrollTop.interpolate({
-                            inputRange: [50, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
-                            outputRange: [1, 0]
-                        }),
-                        transform: [{
-                            translateX: this.scrollTop.interpolate({
-                                inputRange: [0, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
-                                outputRange: [0, 28]
-                            })
-                            
-                        }]
-                    }]}>
-                        {moviedata.name}
-                    </Animated.Text>
                 </ImageBackground>
-                <ScrollViewPager onPageSelected={this.onPageSelected} tabBarOptions={tabBarOptions} >
+                <Animated.View style={{ minHeight:$.HEIGHT - $.STATUS_HEIGHT - 48,transform:[{
+                    translateY:this.scrollTop.interpolate({
+                        inputRange: [0,$.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48,$.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 47],
+                        outputRange: [-50,0,0]
+                    })
+                }]}}>
                     <MovieSummary tablabel='剧情介绍' scrollInnerEnd={this.scrollInnerEnd} onContentSizeChange={this.onContentSizeChange} moviedata={moviedata} isRender={isRender} />
-                    <MovieSource tablabel='选集' scrollInnerEnd={this.scrollInnerEnd} onContentSizeChange={this.onContentSizeChange} moviedata={moviedata} />
-                </ScrollViewPager>
-
+                </Animated.View>
             </Animated.ScrollView>
         )
     }
@@ -401,16 +410,19 @@ const styles = StyleSheet.create({
     },
     viewcon: {
         margin: 10,
-        //backgroundColor: '#fff',
-        //paddingVertical: 10,
-        //borderRadius: 3,
+        marginTop:0,
+        backgroundColor: '#fff',
+        paddingVertical:10,
+        borderRadius: 3,
         //elevation:3
     },
-    row: {
+    movieinfo:{
+        marginTop:10,
+        padding:10,
         flexDirection: 'row'
     },
     con: {
-        margin:5,
+        paddingHorizontal:10,
         flexWrap: 'wrap',
         flexDirection: 'row'
     },
@@ -452,15 +464,14 @@ const styles = StyleSheet.create({
     },
     apptitletext: {
         position: 'absolute',
-        opacity:0,
         fontSize: 16,
         color: '#fff',
     },
     poster: {
         borderRadius: 3,
         backgroundColor: '#f1f1f1',
-        width: 80,
-        height: 120,
+        width: 100,
+        height: 150,
         marginRight: 5,
         justifyContent: 'center',
         alignItems: 'center'
@@ -571,11 +582,26 @@ const styles = StyleSheet.create({
         top: 0,
         padding: 10
     },
-    videobox: {
-        margin: 10,
-    },
-    movieinfo: {
+    view_more: {
         flexDirection: 'row',
-        margin:5
-    }
+        alignSelf: 'stretch',
+        alignItems: 'center',
+    },
+    view_moretext: {
+        fontSize: 13,
+        color: '#999'
+    },
+    view_hd: {
+        height: 15,
+        borderLeftWidth: 3,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        marginVertical: 5,
+    },
+    view_title: {
+        fontSize: 15,
+        color: '#333',
+        flex: 1
+    },
 })

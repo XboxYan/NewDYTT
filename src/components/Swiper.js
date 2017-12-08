@@ -78,7 +78,7 @@ export default class Swiper extends PureComponent {
                     scrollEventThrottle={1}
                     onScroll={Animated.event(
                         [{ nativeEvent: { contentOffset: { x: this.scrollX } } }],
-                        { useNativeDriver: true }
+                        //{ useNativeDriver: true }
                     )}
                     overScrollMode = 'always'
                     onTouchStart={this.cleartimer}
