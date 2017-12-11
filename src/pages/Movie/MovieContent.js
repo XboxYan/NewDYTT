@@ -49,7 +49,7 @@ const MovieItem = ({navigation,item}) => {
             style={styles.movieitem}>
             <Image
                 style={styles.movieimg}
-                source={{ uri: item.img }}
+                source={{ uri: item.img || 'http' }}
             />
             <View style={styles.movietext}>
                 <Text numberOfLines={1} style={styles.moviename}>{item.name}</Text>
