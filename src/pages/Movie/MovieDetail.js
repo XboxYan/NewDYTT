@@ -11,6 +11,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Animated,
+    ToastAndroid,
     InteractionManager,
     Image,
     ImageBackground,
@@ -21,9 +22,9 @@ import {
     View,
 } from 'react-native';
 
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/Feather';
 import ScrollViewPager from 'react-native-scrollviewpager';
-
+import Video from 'react-native-video';
 import AppTop from '../../components/AppTop';
 import Touchable from '../../components/Touchable';
 import Star from '../../components/Star';
@@ -87,7 +88,7 @@ const MovieTop = ({ goBack, scrollTop, name }) => (
             style={styles.btn}
             onPress={goBack}
         >
-            <Icon name='keyboard-arrow-left' size={30} color='#fff' />
+            <Icon name='chevron-left' size={24} color='#fff' />
         </Touchable>
         <View style={styles.apptitle}>
             <Text style={styles.apptitletext} numberOfLines={1}>{name}</Text>
@@ -95,7 +96,7 @@ const MovieTop = ({ goBack, scrollTop, name }) => (
         <Touchable
             style={styles.btn}
         >
-            <Icon name='favorite-border' size={20} color='#fff' />
+            <Icon name='heart' size={18} color='#fff' />
         </Touchable>
         <Animated.View style={[styles.fullcon, { backgroundColor: $.Color }, {
             opacity: scrollTop.interpolate({
@@ -107,27 +108,27 @@ const MovieTop = ({ goBack, scrollTop, name }) => (
 )
 
 //影片信息
-const MovieInfo = ({moviedata: { img, status, score, name=null, area,actors, release, updateDate, sourceTypes = [{}] },sourceTypeIndex,getSource}) => {
-    const sourceType = name?sourceTypes[sourceTypeIndex].desc:' ';
+const MovieInfo = ({moviedata: { img, status, score, name=null, area,type,actors, release, updateDate, sourceTypes = [{}] },sourceTypeIndex,getSource}) => {
+    const sourceType = name?(sourceTypes[sourceTypeIndex]?sourceTypes[sourceTypeIndex].desc:null):'加载中';
     return (
         <View style={[styles.viewcon, styles.movieinfo]}>
             <View style={styles.poster}>
                 <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
             </View>
             <View style={styles.postertext}>
-                <Text style={[styles.title,{color:$.Color }]}>{name}</Text>
+                <Text style={[styles.title,{color:$.Color }]}>{name?`${name} ( ${release}-${area} )`:''}</Text>
+                <Star score={score} />
                 {
                     status && <Text style={[styles.status,{backgroundColor:$.Color}]}>{status}</Text>
                 }
-                <Text style={styles.subtitle}>{release} - {area}</Text>
-                <Star score={score} />
-                <Text style={styles.subtitle} numberOfLines={2}>人物 / {actors}</Text>
+                <Text style={styles.subtitle} numberOfLines={2} >人物 / {actors}</Text>
                 <View style={styles.sourceType}>
                     <Text style={styles.subtitle}>来源 / </Text>
                     <Text style={[styles.subtitle, { color: $.Color }]}>{sourceType||'暂无资源'}</Text>
-                    <Icon name='expand-more' size={20} color={$.Color} />
+                    <Icon name='chevron-down' size={18} color={!!sourceType?$.Color:'transparent'} />
                     <Picker
                         style={styles.picker}
+                        enabled={!!sourceType}
                         selectedValue={'pos' + sourceTypeIndex}
                         onValueChange={getSource}
                         mode='dropdown'>
@@ -167,7 +168,7 @@ class MovieSummary extends PureComponent {
                             style={styles.view_more}
                         >
                             <Text style={styles.view_moretext}>{isMore ? '收起' : '展开'}</Text>
-                            <Icon name={isMore ? 'expand-less' : 'expand-more'} size={20} color={$.Color} />
+                            <Icon name={isMore ? 'chevron-up' : 'chevron-down'} size={18} color={$.Color} />
                         </TouchableOpacity>
                     }
                 </SortTitle>
@@ -175,7 +176,7 @@ class MovieSummary extends PureComponent {
                     {
                         isRender
                             ?
-                            <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc + desc + desc}</Text>
+                            <Text numberOfLines={isMore ? 0 : 5} style={styles.text}>{desc + desc}</Text>
                             :
                             <Loading size='small' text='' />
                     }
@@ -213,27 +214,33 @@ class MovieSource extends PureComponent {
         isRender: false
     }
     componentDidMount() {
-        InteractionManager.runAfterInteractions(() => {
-            setTimeout(() => {
-                this.setState({ isRender: true })
-            }, 300)
-
-        })
+        
     }
+    renderFooter = () => (
+        <View style={{width:10,height:10}} />
+    )
+    renderEmpty = () => (
+        <SourceItem item={{name:'暂无资源'}} />
+    )
     render() {
-        const { isRender } = this.state;
-        if (!isRender) {
-            return <View style={{ height: $.HEIGHT - $.WIDTH * 9 / 16 - 40 }}><Loading size={'small'} text='' /></View>
-        }
-        const { moviedata: { sources = [] }, scrollInnerEnd, onContentSizeChange } = this.props;
+        const {sources} = this.props;
         return (
-            <ScrollView onContentSizeChange={onContentSizeChange} onScrollEndDrag={scrollInnerEnd} style={{ flex: 1 }}>
-                <View style={styles.sourcelist}>
-                    {
-                        sources.map((el) => <SourceItem key={el.aid} item={el} />)
-                    }
-                </View>
-            </ScrollView>
+            <View style={styles.viewcon}>
+                <SortTitle title={`剧集`}/>
+                <FlatList
+                    ref={(ref) => this.flatlist = ref}
+                    style={styles.sourcelist}
+                    showsHorizontalScrollIndicator={false}
+                    horizontal={true}
+                    //initialNumToRender={20}
+                    //removeClippedSubviews={false}
+                    ListEmptyComponent={this.renderEmpty}
+                    ListFooterComponent={this.renderFooter}
+                    data={sources}
+                    keyExtractor={(item, index) => index + item.aid}
+                    renderItem={this.renderItem}
+                />
+            </View>
         )
     }
 }
@@ -252,11 +259,14 @@ export default class extends PureComponent {
     state = {
         moviedata: {},
         sourceTypeIndex: 0,
-        scrollEnabled: true,
-        sources: []
+        isPlay : false,
+        sources: [{}],
+        playUrl:''
     }
 
     scrollTop = new Animated.Value(0);
+
+    scrollBot = new Animated.Value(-70);
 
     getData = async (id) => {
 
@@ -294,6 +304,25 @@ export default class extends PureComponent {
         //console.warn(data.data.body)
     }
 
+
+    onPlay = () => {
+        const {sources} = this.state;
+        ToastAndroid.show(sources[0].playUrl, ToastAndroid.SHORT);
+        this.setState({
+            isPlay:true,
+            playUrl:sources[0].playUrl
+        });
+        this.scrollview.getNode().scrollTo({y:0});
+        Animated.spring(
+            this.scrollBot,
+            {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true
+            }                              
+        ).start();
+    }
+
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
             const { params: { movieId } } = this.props.navigation.state;
@@ -317,15 +346,15 @@ export default class extends PureComponent {
     }
 
     scrollEnd = (e) => {
-        // if (e.nativeEvent.contentOffset.y >= ($.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48) * .5) {
-        //     //this.scrollview.getNode().scrollToEnd();
-        //     if (!this.state.alwaysEnabled[this.tabIndex]) {
-        //         //this.setScrollEnabled(false);
-        //     }
-        // } else {
-        //     //this.scrollview.getNode().scrollTo({y:0});
-        // }
+        const y = ($.WIDTH * 9 / 16) * .5
+        if (e.nativeEvent.contentOffset.y >= y*.5 && e.nativeEvent.contentOffset.y< y*2-$.STATUS_HEIGHT - 48) {
+            this.scrollview.getNode().scrollTo({y:y*2-$.STATUS_HEIGHT - 48});
+        } else if(e.nativeEvent.contentOffset.y < y*.5) {
+            this.scrollview.getNode().scrollTo({y:0});
+        }
     }
+
+
 
     setScrollEnabled = (scrollEnabled) => {
         this.setState({ scrollEnabled });
@@ -355,12 +384,12 @@ export default class extends PureComponent {
 
     render() {
         const { navigation } = this.props;
-        const { moviedata, sourceTypeIndex, scrollEnabled } = this.state;
+        const { moviedata, sources, sourceTypeIndex, isPlay, playUrl } = this.state;
         return (
             <Animated.ScrollView
                 showsVerticalScrollIndicator={false}
                 stickyHeaderIndices={[0]}
-                scrollEnabled={scrollEnabled}
+                scrollEnabled={!isPlay}
                 onScrollEndDrag={this.scrollEnd}
                 ref={(ref) => this.scrollview = ref}
                 scrollEventThrottle={1}
@@ -372,27 +401,50 @@ export default class extends PureComponent {
                 <MovieTop scrollTop={this.scrollTop} name={moviedata.name} />
                 <ImageBackground
                     resizeMode='cover'
-                    blurRadius={3.5}
+                    blurRadius={5}
                     source={{ uri: moviedata.img || 'http' }}
                     style={[styles.bg_place, { backgroundColor: $.Color }]}>
                     <Animated.View pointerEvents="none" style={[styles.bg_place_img, {
                         backgroundColor: $.Color,
                         opacity: this.scrollTop.interpolate({
-                            inputRange: [0, $.STATUS_HEIGHT, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
+                            inputRange: [0, 100, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48],
                             outputRange: [.1, .1, 1]
                         })
                     }]} />
-                </ImageBackground>
-                <Animated.View style={{
-                    minHeight: $.HEIGHT - $.STATUS_HEIGHT - 48, transform: [{
-                        translateY: this.scrollTop.interpolate({
-                            inputRange: [0, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 47],
-                            outputRange: [-50, 0, 0]
+                    {
+                        isPlay&&
+                        <View style={styles.videoCon}>
+                            <Video
+                                ref={(ref) => this.video = ref}
+                                source={{ uri: playUrl }}
+                                style={styles.fullcon}
+                                resizeMode="contain"
+                                controls={true}
+                                repeat={true}
+                            />
+                        </View>
+                    }
+                    
+                    <Animated.View style={[styles.playbtn,{
+                        opacity:this.scrollTop.interpolate({
+                            inputRange: [0, 100],
+                            outputRange: [1, 0]
                         })
+                    }]}>
+                        <TouchableOpacity onPress={this.onPlay}><Icon name='play' size={30} color='#fff' /></TouchableOpacity>
+                    </Animated.View>
+                </ImageBackground>
+                <Animated.View style={[isPlay?{height:$.HEIGHT-$.WIDTH * 9 / 16}:{minHeight: $.HEIGHT - $.STATUS_HEIGHT - 48},
+                    {transform: [{
+                        translateY: !isPlay?this.scrollTop.interpolate({
+                            inputRange: [0, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 48, $.WIDTH * 9 / 16 - $.STATUS_HEIGHT - 47],
+                            outputRange: [-70, 0, 0]
+                        }):this.scrollBot
                     }]
-                }}>
+                }]}>
                     <ScrollView style={{ flex: 1 }}>
                         <MovieInfo moviedata={moviedata} sourceTypeIndex={sourceTypeIndex} getSource={this.getSource}/>
+                        <MovieSource sources={sources} />
                         <MovieSummary moviedata={moviedata} />
                     </ScrollView>
                 </Animated.View>
@@ -408,6 +460,8 @@ const styles = StyleSheet.create({
     bg_place: {
         marginTop: -($.STATUS_HEIGHT + 48),
         height: $.WIDTH * 9 / 16,
+        alignItems:'center',
+        justifyContent: 'center'
     },
     toptitle: {
         position: 'absolute',
@@ -505,11 +559,12 @@ const styles = StyleSheet.create({
     },
     title:{
         fontSize: 16,
+        paddingBottom:5
     },
     subtitle: {
         fontSize: 13,
         color: '#888',
-        paddingVertical: 3
+        paddingVertical: 4
     },
     typeitem: {
         backgroundColor: '#f1f1f1',
@@ -552,7 +607,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 10,
         borderTopLeftRadius: 10,
         justifyContent: 'center',
-        marginVertical: 5,
+        marginTop: 5,
         marginRight: 10,
         padding: 10,
         overflow: 'hidden',
@@ -621,5 +676,20 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#333',
         flex: 1
+    },
+    playbtn:{
+        position:'absolute',
+        width:50,
+        height:50,
+        justifyContent:'center',
+        alignItems: 'center',
+    },
+    videoCon: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#000',
     },
 })

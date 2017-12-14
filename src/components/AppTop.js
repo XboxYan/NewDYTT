@@ -7,7 +7,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from 'react-native-vector-icons/Feather';
 import Touchable from './Touchable';
 //import Shadow from './Shadow';
 
@@ -29,10 +29,10 @@ export default class AppTop extends PureComponent {
 			<View style={[styles.apptop,{backgroundColor:$.Color}]}>
 				<Text style={styles.title}>{title}</Text>
 				<Touchable style={styles.ico}>
-					<Icon name='schedule' size={20} color='#fff' />
+					<Icon name='clock' size={18} color='#fff' />
 				</Touchable>
 				<Touchable onPress={this.goSearch} style={styles.ico}>
-					<Icon name='search' size={24} color='#fff' />
+					<Icon name='search' size={20} color='#fff' />
 				</Touchable>
 			</View>
 		)

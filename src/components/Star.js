@@ -48,12 +48,15 @@ class StarCurrent extends PureComponent {
 export default class Star extends PureComponent {
     render() {
         const { score, style, isShowNum = true } = this.props;
+        if(!parseInt(score)){
+            return null
+        }
         return (
             <View style={[styles.starcon, style]}>
-                <Image source={require('../img/star.png')} style={styles.star} />
+                <Image source={require('../img/star.png')} tintColor={'#f1f1f1'} style={styles.star} />
                 <StarCurrent score={score} />
                 {
-                    isShowNum&&<Text style={[styles.score, { color: $.Color }]}>{parseInt(score)? score:'0.0'}</Text>
+                    isShowNum&&<Text style={[styles.score, { color: $.Color }]}>{score}</Text>
                 }
             </View>
         )
