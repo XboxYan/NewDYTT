@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     Animated,
     ToastAndroid,
+    BackHandler,
     InteractionManager,
     Image,
     ImageBackground,
@@ -116,7 +117,7 @@ const MovieInfo = ({moviedata: { img, status, score, name=null, area,type,actors
                 <Image source={{ uri: img }} style={[styles.fullcon, styles.borR]} />
             </View>
             <View style={styles.postertext}>
-                <Text style={[styles.title,{color:$.Color }]}>{name?`${name} ( ${release}-${area} )`:''}</Text>
+                <Text style={[styles.title,{color:$.Color }]}>{name?`${name}(${release}-${area})`:''}</Text>
                 <Star score={score} />
                 {
                     status && <Text style={[styles.status,{backgroundColor:$.Color}]}>{status}</Text>
@@ -193,37 +194,47 @@ class MovieSummary extends PureComponent {
     }
 }
 
-const SourceItem = ({ item }) => {
+const SourceItem = ({ item,current,play,disabled=false }) => {
     getUrl = () => {
 
     }
     return (
-        <TouchableOpacity style={styles.sourceitem} activeOpacity={.7}>
+        <TouchableOpacity disabled={disabled||current} style={styles.sourceitem} onPress={play} activeOpacity={.7}>
             <Text numberOfLines={2} style={styles.castname}>{item.name || ' '}</Text>
-            <View style={[styles.sourcedot, { backgroundColor: $.Color }, false && { opacity: 1 }]} />
+            <View style={[styles.sourcedot, { backgroundColor: $.Color }, !disabled&&current && { opacity: 1 }]} />
         </TouchableOpacity>
     )
 }
 
 //影片资源
 class MovieSource extends PureComponent {
-    renderItem = ({ item, index }) => {
-        return <SourceItem item={item} />
-    }
+
     state = {
         isRender: false
     }
+
+    renderItem = ({ item, index }) => {
+        const {current,onPlay} = this.props;
+        const play = () => {
+            onPlay(index);
+        }
+        return <SourceItem item={item} play={play} current={current===index} />
+    }
+    
     componentDidMount() {
         
     }
+
     renderFooter = () => (
         <View style={{width:10,height:10}} />
     )
+
     renderEmpty = () => (
-        <SourceItem item={{name:'暂无资源'}} />
+        <SourceItem item={{name:'暂无资源'}} disabled={true} />
     )
+
     render() {
-        const {sources} = this.props;
+        const {sources,current} = this.props;
         return (
             <View style={styles.viewcon}>
                 <SortTitle title={`剧集`}/>
@@ -237,6 +248,7 @@ class MovieSource extends PureComponent {
                     ListEmptyComponent={this.renderEmpty}
                     ListFooterComponent={this.renderFooter}
                     data={sources}
+                    extraData={this.props.current}
                     keyExtractor={(item, index) => index + item.aid}
                     renderItem={this.renderItem}
                 />
@@ -254,12 +266,14 @@ export default class extends PureComponent {
 
     movieId = '';
 
-    tabIndex = 0;
+    //tabIndex = 0;
 
     state = {
         moviedata: {},
         sourceTypeIndex: 0,
+        sourceArr:[0],
         isPlay : false,
+        paused : false,
         sources: [{}],
         playUrl:''
     }
@@ -277,10 +291,11 @@ export default class extends PureComponent {
         })
 
         LayoutAnimation.spring();
-
+        
         this.setState({
             moviedata: data.data.body,
-            sources: data.data.body.sources
+            sources: data.data.body.sources,
+            sourceArr: new Array(data.data.body.sourceTypes.length).fill(0)
         })
 
         //this.scrollview.getNode().scrollTo({y:.3});
@@ -305,25 +320,60 @@ export default class extends PureComponent {
     }
 
 
-    onPlay = () => {
-        const {sources} = this.state;
-        ToastAndroid.show(sources[0].playUrl, ToastAndroid.SHORT);
-        this.setState({
-            isPlay:true,
-            playUrl:sources[0].playUrl
-        });
-        this.scrollview.getNode().scrollTo({y:0});
+    onPlay = (index) => {
+        const {sourceTypeIndex,sourceArr,sources} = this.state;
+        let currentSource = {};
+        if(index>=0){
+            currentSource = sources[index];
+            sourceArr[sourceTypeIndex] = index;
+            console.warn(sourceArr);
+            this.setState({sourceArr});
+        }else{
+            currentSource = sources[sourceArr[sourceTypeIndex]];
+        }
+        
+        ToastAndroid.show(currentSource.playUrl, ToastAndroid.SHORT);
+        if(!this.state.isPlay){
+            this.scrollview.getNode().scrollTo({y:0});
+            this.showVideo(true);
+            this.setState({
+                isPlay:true,
+                playUrl:currentSource.playUrl
+            });
+        }else{
+            this.setState({
+                playUrl:currentSource.playUrl
+            });
+        }      
+    }
+
+    showVideo = (bool,fn=()=>{}) => {
         Animated.spring(
             this.scrollBot,
             {
-                toValue: 0,
+                toValue: bool?0:-70,
                 duration: 300,
                 useNativeDriver: true
             }                              
-        ).start();
+        ).start(fn);
+    }
+
+    goBack = () => {
+        const {isPlay} = this.state;
+        if(isPlay){
+            this.innerscrollview.scrollTo({y:0});
+            this.showVideo(false,()=>{
+                this.setState({isPlay:false});
+            });
+        }else{
+            const { navigation } = this.props;
+            navigation.goBack();
+        }
+        return true;
     }
 
     componentDidMount() {
+        BackHandler.addEventListener('hardwareBackPress', this.goBack);
         InteractionManager.runAfterInteractions(() => {
             const { params: { movieId } } = this.props.navigation.state;
             this.movieId = movieId;
@@ -331,18 +381,12 @@ export default class extends PureComponent {
         })
     }
 
-    onContentSizeChange = (contentWidth, contentHeight) => {
-        //console.warn(contentHeight)
-        if (contentHeight < ($.HEIGHT - $.STATUS_HEIGHT - 48 - 40)) {
-            //this.setAlwaysEnabled(true,this.tabIndex);
-            //this.setScrollEnabled(true);
-        } else {
-            //this.setAlwaysEnabled(false,this.tabIndex);
-        }
-    }
-
     componentWillUpdate() {
         LayoutAnimation.easeInEaseOut();
+    }
+
+    componentWillUnmount() {
+        BackHandler.removeEventListener('hardwareBackPress', this.goBack);
     }
 
     scrollEnd = (e) => {
@@ -355,36 +399,9 @@ export default class extends PureComponent {
     }
 
 
-
-    setScrollEnabled = (scrollEnabled) => {
-        this.setState({ scrollEnabled });
-    }
-
-    setAlwaysEnabled = (bool, i) => {
-        let { alwaysEnabled } = this.state;
-        //alwaysEnabled[i]=bool;
-        //this.setState({ alwaysEnabled });
-    }
-
-    scrollInnerEnd = (e) => {
-        if (e.nativeEvent.contentOffset.y <= 1) {
-            //this.setScrollEnabled(true);
-        }
-    }
-
-    onPageSelected = (i) => {
-        const bool = this.state.alwaysEnabled[i];
-        if (!bool) {
-            this.scrollview.getNode().scrollToEnd();
-        }
-        this.setAlwaysEnabled(bool);
-        this.setScrollEnabled(bool);
-        this.tabIndex = i;
-    }
-
     render() {
         const { navigation } = this.props;
-        const { moviedata, sources, sourceTypeIndex, isPlay, playUrl } = this.state;
+        const { moviedata, sources, sourceTypeIndex,sourceArr, isPlay, playUrl, paused } = this.state;
         return (
             <Animated.ScrollView
                 showsVerticalScrollIndicator={false}
@@ -398,7 +415,7 @@ export default class extends PureComponent {
                     //{ useNativeDriver: true } // <-- 加上这一行
                 )}
             >
-                <MovieTop scrollTop={this.scrollTop} name={moviedata.name} />
+                <MovieTop scrollTop={this.scrollTop} name={moviedata.name} goBack={this.goBack} />
                 <ImageBackground
                     resizeMode='cover'
                     blurRadius={5}
@@ -411,27 +428,38 @@ export default class extends PureComponent {
                             outputRange: [.1, .1, 1]
                         })
                     }]} />
-                    {
-                        isPlay&&
-                        <View style={styles.videoCon}>
-                            <Video
-                                ref={(ref) => this.video = ref}
-                                source={{ uri: playUrl }}
-                                style={styles.fullcon}
-                                resizeMode="contain"
-                                controls={true}
-                                repeat={true}
-                            />
-                        </View>
-                    }
-                    
-                    <Animated.View style={[styles.playbtn,{
-                        opacity:this.scrollTop.interpolate({
+                    <Animated.View  pointerEvents={isPlay?"auto":"none"} style={[styles.videoCon,{
+                        opacity:this.scrollBot.interpolate({
+                            inputRange: [-70, 0],
+                            outputRange: [0, 1]
+                        })
+                    }]}>
+                        <Video
+                            ref={(ref) => this.video = ref}
+                            source={{ uri: playUrl }}
+                            style={styles.fullcon}
+                            resizeMode="contain"
+                            paused={!isPlay||paused}
+                            controls={true}
+                            repeat={true}
+                        />
+                    </Animated.View>
+                    <Animated.View pointerEvents={isPlay?"none":"auto"} style={[styles.playbtn,{
+                        transform:[{
+                            scale:this.scrollBot.interpolate({
+                                inputRange: [-70, 0],
+                                outputRange: [1, 3]
+                            })
+                        }],
+                        opacity:!isPlay?this.scrollTop.interpolate({
                             inputRange: [0, 100],
+                            outputRange: [1, 0]
+                        }):this.scrollBot.interpolate({
+                            inputRange: [-70, 0],
                             outputRange: [1, 0]
                         })
                     }]}>
-                        <TouchableOpacity onPress={this.onPlay}><Icon name='play' size={30} color='#fff' /></TouchableOpacity>
+                        <TouchableOpacity disabled={isPlay} onPress={this.onPlay}><Icon name='play' size={30} color='#fff' /></TouchableOpacity>
                     </Animated.View>
                 </ImageBackground>
                 <Animated.View style={[isPlay?{height:$.HEIGHT-$.WIDTH * 9 / 16}:{minHeight: $.HEIGHT - $.STATUS_HEIGHT - 48},
@@ -442,9 +470,9 @@ export default class extends PureComponent {
                         }):this.scrollBot
                     }]
                 }]}>
-                    <ScrollView style={{ flex: 1 }}>
+                    <ScrollView ref={(ref) => this.innerscrollview = ref} style={{ flex: 1 }}>
                         <MovieInfo moviedata={moviedata} sourceTypeIndex={sourceTypeIndex} getSource={this.getSource}/>
-                        <MovieSource sources={sources} />
+                        <MovieSource sources={sources} current={sourceArr[sourceTypeIndex]} onPlay={this.onPlay} />
                         <MovieSummary moviedata={moviedata} />
                     </ScrollView>
                 </Animated.View>
@@ -640,15 +668,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         opacity: 0
     },
-    videoCon: {
-        position: 'absolute',
-        left: 10,
-        top: 10,
-        right: 10,
-        bottom: 10,
-        backgroundColor: '#000',
-        transform: [{ rotateX: '180deg' }]
-    },
     closebtn: {
         position: 'absolute',
         right: 0,
@@ -691,5 +710,6 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         backgroundColor: '#000',
+        opacity:0
     },
 })
